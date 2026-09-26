@@ -1,0 +1,94 @@
+﻿@page "/species"
+@using RealmForge.Client.Services
+@using RealmForge.Domain.DTOs
+@using RealmForge.Domain.Enums
+@inject SpeciesDataService SpeciesService
+
+<PageTitle>RealmForge - Compendio Specie</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-6 fw-bold">Compendio Specie</h1>
+            <p class="text-muted">Esplora le specie per le tue campagne TTRPG</p>
+        </div>
+
+        <div class="btn-group" role="group">
+            <button class="btn @(CurrentLanguage == LanguageCode.It ? "btn-primary" : "btn-outline-primary")"
+                    @onclick="() => ChangeLanguage(LanguageCode.It)">
+                🇮🇹 Italiano
+            </button>
+            <button class="btn @(CurrentLanguage == LanguageCode.En ? "btn-primary" : "btn-outline-primary")"
+                    @onclick="() => ChangeLanguage(LanguageCode.En)">
+                🇬🇧 English
+            </button>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center my-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">Caricamento compendio...</p>
+        </div>
+    }
+    else if (!speciesList.Any())
+    {
+        <div class="alert alert-info">
+            Nessuna specie trovata nel database per questa lingua.
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var sp in speciesList)
+            {
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title fw-bold mb-0">@sp.Name</h5>
+                                <span class="badge @(sp.IsOfficialSRD ? "bg-success" : "bg-warning text-dark")">
+                                    @(sp.IsOfficialSRD ? "SRD 5e" : "Homebrew")
+                                </span>
+                            </div>
+                            <h6 class="card-subtitle mb-3 text-muted">
+                                Taglia: <span class="fw-semibold">@sp.Size</span> | Velocità: <span class="fw-semibold">@sp.BaseSpeedInFeet ft.</span>
+                            </h6>
+                            <p class="card-text text-secondary">
+                                @(string.IsNullOrWhiteSpace(sp.Description) ? "Nessuna descrizione disponibile." : sp.Description)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<SpeciesResponseDto> speciesList = new();
+    private LanguageCode CurrentLanguage = LanguageCode.It;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task ChangeLanguage(LanguageCode lang)
+    {
+        if (CurrentLanguage != lang)
+        {
+            CurrentLanguage = lang;
+            await LoadData();
+        }
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        speciesList = await SpeciesService.GetSpeciesAsync(CurrentLanguage);
+        isLoading = false;
+    }
+}

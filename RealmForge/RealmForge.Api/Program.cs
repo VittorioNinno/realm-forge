@@ -21,6 +21,18 @@ public class Program
 		//	Configurazione OpenAPI / Swagger
 		builder.Services.AddOpenApi();
 
+		const string CorsPolicyName = "AllowBlazorClient";
+
+		builder.Services.AddCors(options =>
+		{
+			options.AddPolicy(CorsPolicyName, policy =>
+			{
+				policy.AllowAnyOrigin()
+					  .AllowAnyMethod()
+					  .AllowAnyHeader();
+			});
+		});
+
 		var app = builder.Build();
 
 		//	Configurazione della pipeline HTTP
@@ -31,6 +43,8 @@ public class Program
 		}
 
 		app.UseHttpsRedirection();
+
+		app.UseCors(CorsPolicyName);
 
 		app.UseAuthorization();
 
