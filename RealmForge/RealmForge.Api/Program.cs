@@ -1,3 +1,4 @@
+using Scalar.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using RealmForge.Infrastructure.Persistence;
 
@@ -26,6 +27,7 @@ public class Program
 		if (app.Environment.IsDevelopment())
 		{
 			app.MapOpenApi();
+			app.MapScalarApiReference();
 		}
 
 		app.UseHttpsRedirection();
