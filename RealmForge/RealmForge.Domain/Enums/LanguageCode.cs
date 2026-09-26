@@ -3,5 +3,5 @@
 public enum LanguageCode
 {
 	En = 1,	//	English
-	It = 2	//	Italiano
+	It = 2	//	Italian
 }

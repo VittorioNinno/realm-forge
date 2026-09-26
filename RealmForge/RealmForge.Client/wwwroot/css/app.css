@@ -4,7 +4,7 @@
     --rf-bg-card: #161616;
     --rf-border-subtle: #222222;
     --rf-border-light: #333333;
-    /* Arancione Forgia puro */
+    /* Pure Forge Orange */
     --rf-orange-primary: #ff8c00;
     --rf-orange-hover: #ffa533;
     --rf-orange-dark: #2a1c00;
@@ -23,7 +23,7 @@ body {
     margin: 0;
 }
 
-/* Tipografia e Intestazioni */
+/* Typography & Headings */
 h1, h2, h3, h4, h5, h6, .rf-page-title, .brand-title {
     font-family: var(--rf-font-display);
     color: var(--rf-orange-primary) !important;
@@ -32,20 +32,20 @@ h1, h2, h3, h4, h5, h6, .rf-page-title, .brand-title {
     font-weight: 900;
 }
 
-    /* Focus Outline Reset per navigazione */
+    /* Navigation focus outline reset */
     h1:focus, h2:focus, [tabindex="-1"]:focus {
         outline: none !important;
         box-shadow: none !important;
     }
 
-/* Sidebar scura coordinata */
+/* Matching dark sidebar */
 .sidebar {
     background-color: var(--rf-bg-surface) !important;
     background-image: none !important;
     border-right: 1px solid var(--rf-border-subtle) !important;
 }
 
-/* Barra superiore */
+/* Top bar */
 .top-row {
     background-color: var(--rf-bg-surface) !important;
     border-bottom: 1px solid var(--rf-border-subtle) !important;
@@ -64,7 +64,7 @@ h1, h2, h3, h4, h5, h6, .rf-page-title, .brand-title {
             color: var(--rf-orange-primary) !important;
         }
 
-/* Card in stile Wizard Feature-Item */
+/* Feature-Item styled cards */
 .rf-card {
     background-color: var(--rf-bg-card);
     border: 1px solid var(--rf-border-subtle);
@@ -116,7 +116,7 @@ h1, h2, h3, h4, h5, h6, .rf-page-title, .brand-title {
     letter-spacing: 1px;
 }
 
-/* Griglia Metadati */
+/* Metadata grid */
 .rf-meta-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
@@ -138,7 +138,7 @@ h1, h2, h3, h4, h5, h6, .rf-page-title, .brand-title {
         margin-bottom: 2px;
     }
 
-/* Bottoni stile D&D Wizard */
+/* D&D Wizard styled buttons */
 .btn-rf-orange {
     background: var(--rf-orange-primary) !important;
     color: #000000 !important;
@@ -180,3 +180,74 @@ h1, h2, h3, h4, h5, h6, .rf-page-title, .brand-title {
         color: #ffffff !important;
         border-color: #555555 !important;
     }
+
+/* Dark fantasy modal */
+.rf-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+.rf-modal-dialog {
+    background-color: var(--rf-bg-surface);
+    border: 1px solid var(--rf-orange-primary);
+    border-radius: 10px;
+    width: 90%;
+    max-width: 680px;
+    box-shadow: 0 0 30px var(--rf-orange-glow);
+    padding: 24px;
+    color: var(--rf-text-primary);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.rf-form-label {
+    font-size: 0.75em;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--rf-orange-primary);
+    margin-bottom: 6px;
+    display: block;
+}
+
+.rf-form-control {
+    background-color: var(--rf-bg-card);
+    border: 1px solid var(--rf-border-light);
+    color: #ffffff;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 0.9em;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+    .rf-form-control:focus {
+        border-color: var(--rf-orange-primary);
+        box-shadow: 0 0 8px var(--rf-orange-glow);
+    }
+
+.rf-checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.rf-checkbox {
+    accent-color: var(--rf-orange-primary);
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}

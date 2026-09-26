@@ -2,28 +2,43 @@
 using RealmForge.Domain.DTOs;
 using RealmForge.Domain.Enums;
 
-namespace RealmForge.Client.Services;
-
-public class SpeciesDataService
+namespace RealmForge.Client.Services
 {
-	private readonly HttpClient _http;
-
-	public SpeciesDataService(HttpClient http)
+	public class SpeciesDataService
 	{
-		_http = http;
-	}
+		private readonly HttpClient _http;
 
-	public async Task<List<SpeciesResponseDto>> GetSpeciesAsync(LanguageCode lang)
-	{
-		try
+		public SpeciesDataService(HttpClient http)
 		{
-			var response = await _http.GetFromJsonAsync<List<SpeciesResponseDto>>($"api/species?lang={(int)lang}");
-			return response ?? new List<SpeciesResponseDto>();
+			_http = http;
 		}
-		catch (Exception ex)
+
+		public async Task<List<SpeciesResponseDto>> GetSpeciesAsync(LanguageCode lang)
 		{
-			Console.WriteLine($"Errore nel recupero delle specie: {ex.Message}");
-			return new List<SpeciesResponseDto>();
+			try
+			{
+				var response = await _http.GetFromJsonAsync<List<SpeciesResponseDto>>($"api/species?lang={(int)lang}");
+				return response ?? new List<SpeciesResponseDto>();
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error retrieving species: {ex.Message}");
+				return new List<SpeciesResponseDto>();
+			}
+		}
+
+		public async Task<bool> CreateSpeciesAsync(CreateSpeciesDto dto)
+		{
+			try
+			{
+				var response = await _http.PostAsJsonAsync("api/species", dto);
+				return response.IsSuccessStatusCode;
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error creating species: {ex.Message}");
+				return false;
+			}
 		}
 	}
 }

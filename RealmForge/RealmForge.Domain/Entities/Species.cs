@@ -1,28 +1,30 @@
 ﻿using RealmForge.Domain.Common;
 using RealmForge.Domain.Enums;
 
-namespace RealmForge.Domain.Entities;
-
-public class Species : GameEntity
+namespace RealmForge.Domain.Entities
 {
-	//	Dati numerici e meccanici invarianti rispetto alla lingua
-	public int BaseSpeedInFeet { get; set; } = 30;
-	public string Size { get; set; } = "Medium";
+	public class Species : GameEntity
+	{
+		//	Language-invariant numerical and mechanical data
+		public int BaseSpeedInFeet { get; set; } = 30;
+		public CreatureType CreatureType { get; set; } = CreatureType.Humanoid;
+		public List<CreatureSize> AllowedSizes { get; set; } = new() { CreatureSize.Medium };
 
-	//	Collezione di testi localizzati per questa specie
-	public ICollection<SpeciesTranslation> Translations { get; set; } = new List<SpeciesTranslation>();
-}
+		//	Collection of localized texts for this species
+		public ICollection<SpeciesTranslation> Translations { get; set; } = new List<SpeciesTranslation>();
+	}
 
-public class SpeciesTranslation
-{
-	public Guid Id { get; set; } = Guid.NewGuid();
+	public class SpeciesTranslation
+	{
+		public Guid Id { get; set; } = Guid.NewGuid();
 
-	public Guid SpeciesId { get; set; }
-	public Species Species { get; set; } = null!;
+		public Guid SpeciesId { get; set; }
+		public Species Species { get; set; } = null!;
 
-	public LanguageCode Language { get; set; }
+		public LanguageCode Language { get; set; }
 
-	//	Campi localizzati
-	public string Name { get; set; } = string.Empty;
-	public string Description { get; set; } = string.Empty;
+		//	Localized fields
+		public string Name { get; set; } = string.Empty;
+		public string Description { get; set; } = string.Empty;
+	}
 }

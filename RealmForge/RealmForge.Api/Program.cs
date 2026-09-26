@@ -10,15 +10,15 @@ public class Program
 	{
 		var builder = WebApplication.CreateBuilder(args);
 
-		//	Configurazione della stringa di connessione e registrazione DbContext (PostgreSQL)
+		//	Configure connection string and register DbContext (PostgreSQL)
 		var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 		builder.Services.AddDbContext<RealmForgeDbContext>(options =>
 			options.UseNpgsql(connectionString));
 
-		//	Registrazione dei controller
+		//	Register controllers
 		builder.Services.AddControllers();
 
-		//	Configurazione OpenAPI / Swagger
+		//	Configure OpenAPI / Swagger
 		builder.Services.AddOpenApi();
 
 		const string CorsPolicyName = "AllowBlazorClient";
@@ -35,7 +35,7 @@ public class Program
 
 		var app = builder.Build();
 
-		//	Configurazione della pipeline HTTP
+		//	Configure the HTTP request pipeline
 		if (app.Environment.IsDevelopment())
 		{
 			app.MapOpenApi();

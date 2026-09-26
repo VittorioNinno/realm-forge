@@ -1,28 +1,38 @@
 ﻿using RealmForge.Domain.Enums;
 
-namespace RealmForge.Domain.DTOs;
+namespace RealmForge.Domain.DTOs
+{
+	///	<summary>
+	///	Response DTO containing species details localized in the requested language.
+	///	</summary>
+	public record SpeciesResponseDto(
+		Guid Id,
+		string Name,
+		string Description,
+		int BaseSpeedInFeet,
+		List<CreatureSize> AllowedSizes,
+		CreatureType CreatureType,
+		bool IsOfficialSRD,
+		LanguageCode Language
+	);
 
-//	DTO per la restituzione di una specie (con testi nella lingua richiesta)
-public record SpeciesResponseDto(
-	Guid Id,
-	string Name,
-	string Description,
-	int BaseSpeedInFeet,
-	string Size,
-	bool IsOfficialSRD,
-	LanguageCode Language
-);
+	///	<summary>
+	///	Payload DTO for creating a new species along with its localized entries.
+	///	</summary>
+	public record CreateSpeciesDto(
+		int BaseSpeedInFeet,
+		List<CreatureSize> AllowedSizes,
+		CreatureType CreatureType,
+		bool IsOfficialSRD,
+		List<SpeciesTranslationDto> Translations
+	);
 
-//	DTO per la creazione di una specie con traduzione iniziale
-public record CreateSpeciesDto(
-	int BaseSpeedInFeet,
-	string Size,
-	bool IsOfficialSRD,
-	List<SpeciesTranslationDto> Translations
-);
-
-public record SpeciesTranslationDto(
-	LanguageCode Language,
-	string Name,
-	string Description
-);
+	///	<summary>
+	///	DTO representing a localized name and description for a species.
+	///	</summary>
+	public record SpeciesTranslationDto(
+		LanguageCode Language,
+		string Name,
+		string Description
+	);
+}

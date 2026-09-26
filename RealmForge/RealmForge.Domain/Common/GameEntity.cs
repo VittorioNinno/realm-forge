@@ -4,10 +4,10 @@ public abstract class GameEntity
 {
 	public Guid Id { get; set; } = Guid.NewGuid();
 
-	//	true se il dato fa parte delle regole aperte ufficiali (SRD), false se Homebrew
+	//	True if the data is part of the official System Reference Document (SRD), false if Homebrew
 	public bool IsOfficialSRD { get; set; } = false;
 
-	//	Se null è un contenuto base di sistema/SRD; altrimenti corrisponde all'identificativo dell'autore
+	//	If null, it is base system/SRD content; otherwise, it corresponds to the author identifier
 	public string? AuthorId { get; set; }
 
 	public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;

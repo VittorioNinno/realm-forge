@@ -6,7 +6,7 @@ namespace RealmForge.Client.Services
 	{
 		public LanguageCode CurrentLanguage { get; private set; } = LanguageCode.It;
 
-		//	Evento notificato ai componenti registrati quando la lingua cambia
+		//	Event raised to notify registered components when the language changes
 		public event Action? OnLanguageChanged;
 
 		public void SetLanguage(LanguageCode newLanguage)

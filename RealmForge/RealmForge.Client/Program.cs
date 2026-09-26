@@ -19,10 +19,10 @@ namespace RealmForge.Client
 				BaseAddress = new Uri("https://localhost:7086/")
 			});
 
-			//	Servizio gestione dati API
+			//	API data management service
 			builder.Services.AddScoped<SpeciesDataService>();
 
-			//	Servizio gestione stato lingua UI
+			//	UI language state management service
 			builder.Services.AddScoped<LanguageStateService>();
 
 			await builder.Build().RunAsync();

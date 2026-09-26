@@ -10,12 +10,27 @@
 <PageTitle>RealmForge - @UiText.SpeciesTitle(LanguageState.CurrentLanguage)</PageTitle>
 
 <div class="container-fluid px-0 py-4">
-    <div class="mb-4 pb-3" style="border-bottom: 2px solid var(--rf-orange-primary);">
-        <h1 class="h3 fw-bold mb-1 rf-page-title">@UiText.SpeciesTitle(LanguageState.CurrentLanguage)</h1>
-        <p class="mb-0 small" style="color: var(--rf-text-muted); letter-spacing: 1px; text-transform: uppercase;">
-            @UiText.SpeciesSubtitle(LanguageState.CurrentLanguage)
-        </p>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-3" style="border-bottom: 2px solid var(--rf-orange-primary);">
+        <div>
+            <h1 class="h3 fw-bold mb-1 rf-page-title">@UiText.SpeciesTitle(LanguageState.CurrentLanguage)</h1>
+            <p class="mb-0 small" style="color: var(--rf-text-muted); letter-spacing: 1px; text-transform: uppercase;">
+                @UiText.SpeciesSubtitle(LanguageState.CurrentLanguage)
+            </p>
+        </div>
+
+        <div>
+            <button class="btn btn-rf-orange" @onclick="OpenCreateModal">
+                @UiText.BtnAddSpecies(LanguageState.CurrentLanguage)
+            </button>
+        </div>
     </div>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger bg-dark border-danger text-light mb-4">
+            @errorMessage
+        </div>
+    }
 
     @if (isLoading)
     {
@@ -51,12 +66,16 @@
 
                             <div class="rf-meta-row">
                                 <div>
+                                    <strong>@UiText.LabelCreatureType(LanguageState.CurrentLanguage)</strong>
+                                    <span style="color: #ffffff;">@UiText.FormatCreatureType(sp.CreatureType, LanguageState.CurrentLanguage)</span>
+                                </div>
+                                <div>
                                     <strong>@UiText.MetaSize(LanguageState.CurrentLanguage)</strong>
-                                    <span style="color: #ffffff;">@sp.Size</span>
+                                    <span style="color: #ffffff;">@UiText.FormatSizes(sp.AllowedSizes, LanguageState.CurrentLanguage)</span>
                                 </div>
                                 <div>
                                     <strong>@UiText.MetaSpeed(LanguageState.CurrentLanguage)</strong>
-                                    <span style="color: #ffffff;">@sp.BaseSpeedInFeet ft.</span>
+                                    <span style="color: #ffffff;">@UiText.FormatSpeed(sp.BaseSpeedInFeet, LanguageState.CurrentLanguage)</span>
                                 </div>
                             </div>
 
@@ -71,9 +90,122 @@
     }
 </div>
 
+@* --- CREATE SPECIES MODAL --- *@
+@if (isModalOpen)
+{
+    <div class="rf-modal-backdrop" @onclick="CloseCreateModal">
+        <div class="rf-modal-dialog" @onclick:stopPropagation="true">
+            <h2 class="h4 mb-3 pb-2" style="border-bottom: 1px solid var(--rf-border-light); font-family: var(--rf-font-display);">
+                @UiText.ModalTitleAddSpecies(LanguageState.CurrentLanguage)
+            </h2>
+
+            @if (!string.IsNullOrEmpty(formValidationMessage))
+            {
+                <div class="alert alert-warning bg-dark border-warning text-warning p-2 small mb-3">
+                    @formValidationMessage
+                </div>
+            }
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="rf-form-label">@UiText.LabelCreatureType(LanguageState.CurrentLanguage)</label>
+                    <select class="rf-form-control" @bind="newCreatureType">
+                        @foreach (var type in Enum.GetValues<CreatureType>())
+                        {
+                            <option value="@type">@UiText.FormatCreatureType(type, LanguageState.CurrentLanguage)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="rf-form-label">
+                        @UiText.LabelSpeed(LanguageState.CurrentLanguage)
+                        <span class="text-secondary ms-1">(@UiText.FormatSpeed(newSpeed, LanguageState.CurrentLanguage))</span>
+                    </label>
+                    <input type="number" class="rf-form-control" @bind="newSpeed" min="5" step="5" />
+                </div>
+            </div>
+
+            @* Available sizes checkbox list *@
+            <div class="mb-3">
+                <label class="rf-form-label">@UiText.LabelSizes(LanguageState.CurrentLanguage)</label>
+                <div class="d-flex flex-wrap gap-3 p-2 rounded" style="background: var(--rf-bg-card); border: 1px solid var(--rf-border-light);">
+                    @foreach (var size in Enum.GetValues<CreatureSize>())
+                    {
+                        <label class="rf-checkbox-wrapper mb-0">
+                            <input type="checkbox"
+                                   class="rf-checkbox"
+                                   checked="@selectedSizes.Contains(size)"
+                                   @onchange="(e) => ToggleSize(size, e.Value)" />
+                            <span class="small" style="color: #ffffff;">@UiText.FormatSizeSingle(size, LanguageState.CurrentLanguage)</span>
+                        </label>
+                    }
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="rf-checkbox-wrapper">
+                    <input type="checkbox" class="rf-checkbox" @bind="newIsSRD" />
+                    <span class="small fw-bold" style="color: var(--rf-text-secondary);">@UiText.LabelIsSRD(LanguageState.CurrentLanguage)</span>
+                </label>
+            </div>
+
+            @* Italian Translation Section *@
+            <div class="p-3 mb-3 rounded" style="background-color: var(--rf-bg-card); border-left: 3px solid var(--rf-orange-primary);">
+                <div class="fw-bold mb-2 small" style="color: var(--rf-orange-primary);">@UiText.TabItalian(LanguageState.CurrentLanguage)</div>
+                <div class="mb-2">
+                    <label class="rf-form-label">@UiText.LabelName(LanguageState.CurrentLanguage)</label>
+                    <input type="text" class="rf-form-control" placeholder="@UiText.PlaceholderNameIt(LanguageState.CurrentLanguage)" @bind="nameIt" />
+                </div>
+                <div>
+                    <label class="rf-form-label">@UiText.LabelDescription(LanguageState.CurrentLanguage)</label>
+                    <textarea class="rf-form-control" rows="2" @bind="descIt"></textarea>
+                </div>
+            </div>
+
+            @* English Translation Section *@
+            <div class="p-3 mb-4 rounded" style="background-color: var(--rf-bg-card); border-left: 3px solid #666;">
+                <div class="fw-bold mb-2 small text-secondary">@UiText.TabEnglish(LanguageState.CurrentLanguage)</div>
+                <div class="mb-2">
+                    <label class="rf-form-label" style="color: var(--rf-text-secondary);">@UiText.LabelName(LanguageState.CurrentLanguage)</label>
+                    <input type="text" class="rf-form-control" placeholder="@UiText.PlaceholderNameEn(LanguageState.CurrentLanguage)" @bind="nameEn" />
+                </div>
+                <div>
+                    <label class="rf-form-label" style="color: var(--rf-text-secondary);">@UiText.LabelDescription(LanguageState.CurrentLanguage)</label>
+                    <textarea class="rf-form-control" rows="2" @bind="descEn"></textarea>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 pt-2" style="border-top: 1px solid var(--rf-border-light);">
+                <button class="btn btn-rf-outline" @onclick="CloseCreateModal">
+                    @UiText.BtnCancel(LanguageState.CurrentLanguage)
+                </button>
+                <button class="btn btn-rf-orange" @onclick="HandleSaveSpecies" disabled="@isSaving">
+                    @(isSaving ? "..." : UiText.BtnSave(LanguageState.CurrentLanguage))
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private List<SpeciesResponseDto> speciesList = new();
     private bool isLoading = true;
+    private string? errorMessage;
+
+    // Modal state
+    private bool isModalOpen = false;
+    private bool isSaving = false;
+    private string? formValidationMessage;
+
+    // Form fields
+    private int newSpeed = 30;
+    private CreatureType newCreatureType = CreatureType.Humanoid;
+    private HashSet<CreatureSize> selectedSizes = new() { CreatureSize.Medium };
+    private bool newIsSRD = false;
+    private string nameIt = "";
+    private string descIt = "";
+    private string nameEn = "";
+    private string descEn = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -90,8 +222,88 @@
     private async Task LoadData()
     {
         isLoading = true;
+        errorMessage = null;
         speciesList = await SpeciesService.GetSpeciesAsync(LanguageState.CurrentLanguage);
         isLoading = false;
+    }
+
+    private void OpenCreateModal()
+    {
+        formValidationMessage = null;
+        newSpeed = 30;
+        newCreatureType = CreatureType.Humanoid;
+        selectedSizes = new HashSet<CreatureSize> { CreatureSize.Medium };
+        newIsSRD = false;
+        nameIt = "";
+        descIt = "";
+        nameEn = "";
+        descEn = "";
+        isModalOpen = true;
+    }
+
+    private void CloseCreateModal()
+    {
+        isModalOpen = false;
+    }
+
+    private void ToggleSize(CreatureSize size, object? isChecked)
+    {
+        if (isChecked is bool checkedValue)
+        {
+            if (checkedValue)
+            {
+                selectedSizes.Add(size);
+            }
+            else
+            {
+                selectedSizes.Remove(size);
+            }
+        }
+    }
+
+    private async Task HandleSaveSpecies()
+    {
+        if (string.IsNullOrWhiteSpace(nameIt) || string.IsNullOrWhiteSpace(nameEn))
+        {
+            formValidationMessage = UiText.ErrFillNames(LanguageState.CurrentLanguage);
+            return;
+        }
+
+        if (!selectedSizes.Any())
+        {
+            formValidationMessage = LanguageState.CurrentLanguage == LanguageCode.It
+                ? "Seleziona almeno una taglia per la specie!"
+                : "Select at least one size for the species!";
+            return;
+        }
+
+        isSaving = true;
+        formValidationMessage = null;
+
+        var dto = new CreateSpeciesDto(
+            newSpeed,
+            selectedSizes.ToList(),
+            newCreatureType,
+            newIsSRD,
+            new List<SpeciesTranslationDto>
+            {
+                new SpeciesTranslationDto(LanguageCode.It, nameIt.Trim(), descIt?.Trim() ?? string.Empty),
+                new SpeciesTranslationDto(LanguageCode.En, nameEn.Trim(), descEn?.Trim() ?? string.Empty)
+            }
+        );
+
+        var success = await SpeciesService.CreateSpeciesAsync(dto);
+        isSaving = false;
+
+        if (success)
+        {
+            isModalOpen = false;
+            await LoadData();
+        }
+        else
+        {
+            formValidationMessage = UiText.ErrApiSave(LanguageState.CurrentLanguage);
+        }
     }
 
     public void Dispose()
