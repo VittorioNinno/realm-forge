@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="RealmForge.Api/RealmForge.Api.csproj" />
+  <Project Path="RealmForge.Client/RealmForge.Client.csproj" />
+  <Project Path="RealmForge.Domain/RealmForge.Domain.csproj" />
+  <Project Path="RealmForge.Infrastructure/RealmForge.Infrastructure.csproj" />
+</Solution>

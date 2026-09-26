@@ -1,0 +1,6 @@
+@RealmForge.Api_HostAddress = http://localhost:5234
+
+GET {{RealmForge.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
