@@ -1,7 +1,24 @@
 ﻿@page "/"
+@using RealmForge.Client.Localization
+@using RealmForge.Client.Services
+@implements IDisposable
+@inject LanguageStateService LanguageState
 
-<PageTitle>Home</PageTitle>
+<PageTitle>RealmForge - Dashboard</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="py-4">
+    <h1 class="rf-page-title mb-2">@UiText.HomeTitle(LanguageState.CurrentLanguage)</h1>
+    <p class="text-secondary lead fs-6">@UiText.HomeSubtitle(LanguageState.CurrentLanguage)</p>
+</div>
 
-Welcome to your new app.
+@code {
+    protected override void OnInitialized()
+    {
+        LanguageState.OnLanguageChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        LanguageState.OnLanguageChanged -= StateHasChanged;
+    }
+}

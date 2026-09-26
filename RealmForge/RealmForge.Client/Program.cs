@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using RealmForge.Client;
 using RealmForge.Client.Services;
 
 namespace RealmForge.Client
@@ -13,14 +14,16 @@ namespace RealmForge.Client
 			builder.RootComponents.Add<App>("#app");
 			builder.RootComponents.Add<HeadOutlet>("head::after");
 
-			//	Configurazione dell'HttpClient puntato all'indirizzo dell'API
 			builder.Services.AddScoped(sp => new HttpClient
 			{
 				BaseAddress = new Uri("https://localhost:7086/")
 			});
 
-			//	Registrazione del servizio per il recupero delle specie
+			//	Servizio gestione dati API
 			builder.Services.AddScoped<SpeciesDataService>();
+
+			//	Servizio gestione stato lingua UI
+			builder.Services.AddScoped<LanguageStateService>();
 
 			await builder.Build().RunAsync();
 		}

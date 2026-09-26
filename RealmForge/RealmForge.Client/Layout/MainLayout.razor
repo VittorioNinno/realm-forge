@@ -1,4 +1,9 @@
 ﻿@inherits LayoutComponentBase
+@using RealmForge.Client.Localization
+@using RealmForge.Client.Services
+@using RealmForge.Domain.Enums
+@implements IDisposable
+@inject LanguageStateService LanguageState
 
 <div class="page">
     <div class="sidebar">
@@ -6,9 +11,20 @@
     </div>
 
     <main>
-        <div class="top-row px-4">
-            <span class="text-secondary small">RealmForge TTRPG Suite v0.1</span>
-            <a href="https://github.com" target="_blank" class="ms-3">GitHub</a>
+        <div class="top-row px-4 d-flex justify-content-between align-items-center">
+            <span class="text-secondary small">@UiText.VersionNotice(LanguageState.CurrentLanguage)</span>
+
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm @(LanguageState.CurrentLanguage == LanguageCode.It ? "btn-rf-orange" : "btn-rf-outline") px-2 py-1"
+                        @onclick="() => LanguageState.SetLanguage(LanguageCode.It)">
+                    🇮🇹 IT
+                </button>
+                <button class="btn btn-sm @(LanguageState.CurrentLanguage == LanguageCode.En ? "btn-rf-orange" : "btn-rf-outline") px-2 py-1"
+                        @onclick="() => LanguageState.SetLanguage(LanguageCode.En)">
+                    🇬🇧 EN
+                </button>
+                <a href="https://github.com" target="_blank" class="ms-3 text-secondary text-decoration-none">GitHub</a>
+            </div>
         </div>
 
         <article class="content px-4">
@@ -16,3 +32,15 @@
         </article>
     </main>
 </div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        LanguageState.OnLanguageChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        LanguageState.OnLanguageChanged -= StateHasChanged;
+    }
+}

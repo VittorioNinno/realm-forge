@@ -1,5 +1,39 @@
 ﻿@page "/not-found"
 @layout MainLayout
+@using RealmForge.Client.Localization
+@using RealmForge.Client.Services
+@implements IDisposable
+@inject LanguageStateService LanguageState
 
-<h3>Not Found</h3>
-<p>Sorry, the content you are looking for does not exist.</p>
+<PageTitle>RealmForge - @UiText.NotFoundTitle(LanguageState.CurrentLanguage)</PageTitle>
+
+<div class="container-fluid px-0 py-5">
+    <div class="p-5 rounded text-center rf-card" style="max-width: 650px; margin: 40px auto; border-left: 4px solid var(--rf-orange-primary);">
+        <div class="display-3 fw-bold mb-3" style="color: var(--rf-orange-primary); font-family: var(--rf-font-display);">
+            404
+        </div>
+        <h1 class="h3 fw-bold mb-3 rf-page-title">
+            @UiText.NotFoundTitle(LanguageState.CurrentLanguage)
+        </h1>
+        <p class="mb-4 lead fs-6" style="color: var(--rf-text-secondary); line-height: 1.6;">
+            @UiText.NotFoundSubtitle(LanguageState.CurrentLanguage)
+        </p>
+        <div>
+            <a href="" class="btn btn-rf-orange text-decoration-none">
+                @UiText.NotFoundBackHome(LanguageState.CurrentLanguage)
+            </a>
+        </div>
+    </div>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        LanguageState.OnLanguageChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        LanguageState.OnLanguageChanged -= StateHasChanged;
+    }
+}
