@@ -43,6 +43,20 @@ namespace RealmForge.Client.Services
 			}
 		}
 
+		public async Task<SpeciesDetailResponseDto?> GetSpeciesDetailAsync(Guid id, LanguageCode language)
+		{
+			try
+			{
+				var url = $"api/species/{id}?lang={(int)language}";
+				return await _http.GetFromJsonAsync<SpeciesDetailResponseDto>(url);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Failed to load species detail from API for ID {SpeciesId} and language {Language}", id, language);
+				return null;
+			}
+		}
+
 		public async Task<bool> CreateSpeciesAsync(CreateSpeciesDto dto)
 		{
 			try

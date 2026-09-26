@@ -10,8 +10,17 @@ namespace RealmForge.Infrastructure.Persistence
 		{
 		}
 
+		// Species aggregate
 		public DbSet<Species> Species => Set<Species>();
 		public DbSet<SpeciesTranslation> SpeciesTranslations => Set<SpeciesTranslation>();
+
+		//	Subspecies and Lineages aggregate
+		public DbSet<Subspecies> Subspecies => Set<Subspecies>();
+		public DbSet<SubspeciesTranslation> SubspeciesTranslations => Set<SubspeciesTranslation>();
+
+		//	Traits and Abilities aggregate
+		public DbSet<Trait> Traits => Set<Trait>();
+		public DbSet<TraitTranslation> TraitTranslations => Set<TraitTranslation>();
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -24,9 +33,23 @@ namespace RealmForge.Infrastructure.Persistence
 				entity.Property(e => e.BaseSpeedInFeet).IsRequired();
 				entity.Property(e => e.CreatureType).IsRequired();
 				entity.Property(e => e.AllowedSizes).IsRequired();
+				entity.Property(e => e.Ruleset).IsRequired();
+				entity.Property(e => e.IsOfficialSRD).IsRequired();
 
 				//	One-to-many relationship with translations
 				entity.HasMany(e => e.Translations)
+						.WithOne(t => t.Species)
+						.HasForeignKey(t => t.SpeciesId)
+						.OnDelete(DeleteBehavior.Cascade);
+
+				//	One-to-many relationship with subspecies/lineages
+				entity.HasMany(e => e.Subspecies)
+						.WithOne(s => s.Species)
+						.HasForeignKey(s => s.SpeciesId)
+						.OnDelete(DeleteBehavior.Cascade);
+
+				//	One-to-many relationship with base traits
+				entity.HasMany(e => e.Traits)
 						.WithOne(t => t.Species)
 						.HasForeignKey(t => t.SpeciesId)
 						.OnDelete(DeleteBehavior.Cascade);
@@ -41,6 +64,63 @@ namespace RealmForge.Infrastructure.Persistence
 
 				//	Unique index: a species cannot have two translations for the same language
 				entity.HasIndex(t => new { t.SpeciesId, t.Language }).IsUnique();
+			});
+
+			//	Subspecies configuration
+			modelBuilder.Entity<Subspecies>(entity =>
+			{
+				entity.HasKey(e => e.Id);
+				entity.Property(e => e.Ruleset).IsRequired();
+				entity.Property(e => e.IsOfficialSRD).IsRequired();
+
+				//	One-to-many relationship with translations
+				entity.HasMany(e => e.Translations)
+						.WithOne(t => t.Subspecies)
+						.HasForeignKey(t => t.SubspeciesId)
+						.OnDelete(DeleteBehavior.Cascade);
+
+				//	One-to-many relationship with exclusive traits
+				entity.HasMany(e => e.Traits)
+						.WithOne(t => t.Subspecies)
+						.HasForeignKey(t => t.SubspeciesId)
+						.OnDelete(DeleteBehavior.Cascade);
+			});
+
+			//	Subspecies translations configuration
+			modelBuilder.Entity<SubspeciesTranslation>(entity =>
+			{
+				entity.HasKey(t => t.Id);
+				entity.Property(t => t.Name).HasMaxLength(150).IsRequired();
+				entity.Property(t => t.Description).HasMaxLength(4000);
+
+				//	Unique index: a subspecies cannot have two translations for the same language
+				entity.HasIndex(t => new { t.SubspeciesId, t.Language }).IsUnique();
+			});
+
+			//	Trait configuration
+			modelBuilder.Entity<Trait>(entity =>
+			{
+				entity.HasKey(e => e.Id);
+				entity.Property(e => e.RequiredLevel).IsRequired().HasDefaultValue(1);
+				entity.Property(e => e.Ruleset).IsRequired();
+				entity.Property(e => e.IsOfficialSRD).IsRequired();
+
+				//	One-to-many relationship with translations
+				entity.HasMany(e => e.Translations)
+						.WithOne(t => t.Trait)
+						.HasForeignKey(t => t.TraitId)
+						.OnDelete(DeleteBehavior.Cascade);
+			});
+
+			//	Trait translations configuration
+			modelBuilder.Entity<TraitTranslation>(entity =>
+			{
+				entity.HasKey(t => t.Id);
+				entity.Property(t => t.Name).HasMaxLength(150).IsRequired();
+				entity.Property(t => t.Description).HasMaxLength(4000);
+
+				//	Unique index: a trait cannot have two translations for the same language
+				entity.HasIndex(t => new { t.TraitId, t.Language }).IsUnique();
 			});
 		}
 	}

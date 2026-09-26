@@ -204,5 +204,39 @@ namespace RealmForge.Client.Localization
 
 		public static string FilterOnlyHomebrew(LanguageCode lang) =>
 			lang == LanguageCode.It ? "Solo Homebrew" : "Homebrew Only";
+
+		//	Interactive Sheet Labels & Detail Modal
+		public static string LabelSelectSubspecies(LanguageCode lang) =>
+			lang == LanguageCode.It ? "Sottospecie / Lignaggio:" : "Subspecies / Lineage:";
+
+		public static string OptionBaseSpeciesOnly(LanguageCode lang) =>
+			lang == LanguageCode.It ? "Specie Base" : "Base Species";
+
+		public static string BadgeSourceBase(LanguageCode lang) =>
+			lang == LanguageCode.It ? "Specie" : "Species";
+
+		public static string BadgeSourceSubspecies(LanguageCode lang) =>
+			lang == LanguageCode.It ? "Sottospecie" : "Subspecies";
+
+		public static string SectionBaseTraits(LanguageCode lang) =>
+			lang == LanguageCode.It ? "Tratti della Specie" : "Species Traits";
+
+		public static string SectionSubspecies(LanguageCode lang) =>
+			lang == LanguageCode.It ? "Sottospecie e Lignaggi" : "Subspecies & Lineages";
+
+		public static string BadgeTraitsCount(int count, LanguageCode lang) =>
+			lang == LanguageCode.It ? $"{count} Tratti" : $"{count} Traits";
+
+		public static string BadgeSubspeciesCount(int count, LanguageCode lang) =>
+			lang == LanguageCode.It ? $"{count} Sottospecie" : $"{count} Subspecies";
+
+		public static string BtnViewDetails(LanguageCode lang) =>
+			lang == LanguageCode.It ? "DETTAGLI" : "DETAILS";
+
+		public static string LabelRequiredLevel(int level, LanguageCode lang) =>
+			lang == LanguageCode.It ? $"Livello {level}" : $"Level {level}";
+
+		public static string BtnClose(LanguageCode lang) =>
+			lang == LanguageCode.It ? "CHIUDI" : "CLOSE";
 	}
 }

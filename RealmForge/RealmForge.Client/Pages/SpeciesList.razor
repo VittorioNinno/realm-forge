@@ -83,9 +83,11 @@
             @foreach (var sp in speciesList)
             {
                 <div class="col">
-                    <div class="rf-card h-100 d-flex flex-column justify-content-between">
+                    <div class="rf-card h-100 d-flex flex-column justify-content-between"
+                         style="cursor: pointer;"
+                         @onclick="() => OpenDetailModal(sp.Id)">
                         <div>
-                            @* CARD HEADER: Name on the left, Clean Badges on the right *@
+                            @* CARD HEADER *@
                             <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
                                 <span class="rf-card-title mb-0">@sp.Name</span>
                                 <div class="d-flex gap-1 flex-shrink-0 align-items-center">
@@ -115,9 +117,30 @@
                             </div>
 
                             @* CARD DESCRIPTION *@
-                            <p class="small lh-base mb-0" style="color: var(--rf-text-secondary); text-align: justify;">
+                            <p class="small lh-base mb-3" style="color: var(--rf-text-secondary); text-align: left;">
                                 @(string.IsNullOrWhiteSpace(sp.Description) ? UiText.NoDescription(LanguageState.CurrentLanguage) : sp.Description)
                             </p>
+                        </div>
+
+                        @* CARD FOOTER: Trait / Subspecies counts & Action Button *@
+                        <div class="pt-3 d-flex justify-content-between align-items-center" style="border-top: 1px solid var(--rf-border-subtle);">
+                            <div class="d-flex gap-2">
+                                @if (sp.TraitCount > 0)
+                                {
+                                    <span class="badge bg-dark border border-secondary text-light small">
+                                        @UiText.BadgeTraitsCount(sp.TraitCount, LanguageState.CurrentLanguage)
+                                    </span>
+                                }
+                                @if (sp.SubspeciesCount > 0)
+                                {
+                                    <span class="badge bg-dark border border-warning text-warning small">
+                                        @UiText.BadgeSubspeciesCount(sp.SubspeciesCount, LanguageState.CurrentLanguage)
+                                    </span>
+                                }
+                            </div>
+                            <button class="btn btn-sm btn-rf-outline" @onclick:stopPropagation="true" @onclick="() => OpenDetailModal(sp.Id)">
+                                @UiText.BtnViewDetails(LanguageState.CurrentLanguage)
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -125,6 +148,149 @@
         </div>
     }
 </div>
+
+@* --- INTERACTIVE CHARACTER-SHEET DETAIL MODAL --- *@
+@if (isDetailModalOpen)
+{
+    <div class="rf-modal-backdrop" @onclick="CloseDetailModal">
+        <div class="rf-modal-dialog" style="max-width: 820px;" @onclick:stopPropagation="true">
+            @if (isDetailLoading || selectedDetail == null)
+            {
+                <div class="text-center py-5">
+                    <div class="spinner-border" style="color: var(--rf-orange-primary);" role="status"></div>
+                </div>
+            }
+            else
+            {
+                @* MODAL HEADER *@
+                <div class="d-flex justify-content-between align-items-start mb-3 pb-2" style="border-bottom: 2px solid var(--rf-orange-primary);">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <h2 class="h3 mb-0" style="color: var(--rf-orange-primary); font-family: var(--rf-font-display);">
+                                @selectedDetail.Name
+                            </h2>
+                            @if (ActiveSubspecies != null)
+                            {
+                                <span class="h5 mb-0 text-white fw-light">/ @ActiveSubspecies.Name</span>
+                            }
+                        </div>
+                        <div class="d-flex gap-2 mt-1">
+                            <span class="badge @(selectedDetail.Ruleset == RulesetVersion.Dnd5e_2024 ? "badge-edition-2024" : "badge-edition-2014")">
+                                @UiText.FormatRuleset(selectedDetail.Ruleset, LanguageState.CurrentLanguage)
+                            </span>
+                            <span class="badge @(selectedDetail.IsOfficialSRD ? "badge-srd" : "badge-homebrew")">
+                                @(selectedDetail.IsOfficialSRD ? UiText.BadgeSRD(LanguageState.CurrentLanguage) : UiText.BadgeHomebrew(LanguageState.CurrentLanguage))
+                            </span>
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-rf-outline" @onclick="CloseDetailModal">✕</button>
+                </div>
+
+                @* INTERACTIVE SUBSPECIES SELECTOR PILLS *@
+                @if (selectedDetail.Subspecies.Any())
+                {
+                    <div class="mb-4 p-3 rounded" style="background-color: var(--rf-bg-main); border: 1px solid var(--rf-border-subtle);">
+                        <label class="rf-form-label mb-2 small text-uppercase">
+                            @UiText.LabelSelectSubspecies(LanguageState.CurrentLanguage)
+                        </label>
+                        <div class="rf-pill-group">
+                            <button type="button"
+                                    class="rf-pill-btn @(selectedSubspeciesId == null ? "active" : "")"
+                                    @onclick="() => selectedSubspeciesId = null">
+                                @UiText.OptionBaseSpeciesOnly(LanguageState.CurrentLanguage)
+                            </button>
+
+                            @foreach (var sub in selectedDetail.Subspecies)
+                            {
+                                <button type="button"
+                                        class="rf-pill-btn @(selectedSubspeciesId == sub.Id ? "active" : "")"
+                                        @onclick="() => selectedSubspeciesId = sub.Id">
+                                    @sub.Name
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @* DYNAMIC METADATA ROW (Recalculates speed live) *@
+                <div class="rf-meta-row mb-3">
+                    <div>
+                        <strong>@UiText.LabelCreatureType(LanguageState.CurrentLanguage)</strong>
+                        <span style="color: #ffffff;">@UiText.FormatCreatureType(selectedDetail.CreatureType, LanguageState.CurrentLanguage)</span>
+                    </div>
+                    <div>
+                        <strong>@UiText.MetaSize(LanguageState.CurrentLanguage)</strong>
+                        <span style="color: #ffffff;">@UiText.FormatSizes(selectedDetail.AllowedSizes, LanguageState.CurrentLanguage)</span>
+                    </div>
+                    <div>
+                        <strong>@UiText.MetaSpeed(LanguageState.CurrentLanguage)</strong>
+                        <span style="color: #ffffff;" class="@(ActiveSubspecies?.BaseSpeedOverrideInFeet.HasValue == true ? "fw-bold text-warning" : "")">
+                            @UiText.FormatSpeed(ActiveSpeed, LanguageState.CurrentLanguage)
+                        </span>
+                    </div>
+                </div>
+
+                @* DESCRIPTIONS *@
+                <div class="mb-4">
+                    <p class="small lh-base mb-2" style="color: var(--rf-text-secondary); text-align: left;">
+                        @selectedDetail.Description
+                    </p>
+
+                    @* Active Subspecies Lore Callout *@
+                    @if (ActiveSubspecies != null && !string.IsNullOrWhiteSpace(ActiveSubspecies.Description))
+                    {
+                        <div class="p-3 mt-2 rounded" style="background-color: var(--rf-bg-main); border-left: 3px solid #ffb74d;">
+                            <strong class="text-warning small d-block mb-1 text-uppercase" style="letter-spacing: 0.5px;">
+                                @ActiveSubspecies.Name
+                            </strong>
+                            <p class="small mb-0 text-light" style="text-align: left; line-height: 1.5;">
+                                @ActiveSubspecies.Description
+                            </p>
+                        </div>
+                    }
+                </div>
+
+                @* DYNAMIC COMBINED TRAITS LIST *@
+                <h5 class="h6 text-uppercase fw-bold mb-3" style="color: var(--rf-orange-primary); letter-spacing: 1px;">
+                    @UiText.SectionBaseTraits(LanguageState.CurrentLanguage)
+                    <span class="text-secondary small fw-normal">(@ActiveTraits.Count)</span>
+                </h5>
+
+                <div class="d-flex flex-column gap-2 mb-4">
+                    @foreach (var item in ActiveTraits)
+                    {
+                        <div class="p-3 rounded" style="background-color: var(--rf-bg-card); border-left: 3px solid @(item.IsSubspeciesTrait ? "#ffb74d" : "var(--rf-orange-primary)");">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <div class="d-flex align-items-center gap-2">
+                                    <strong class="text-light">@item.Trait.Name</strong>
+                                    <span class="badge @(item.IsSubspeciesTrait ? "bg-dark border border-warning text-warning" : "bg-dark border border-secondary text-secondary")" style="font-size: 0.65rem;">
+                                        @(item.IsSubspeciesTrait ? (ActiveSubspecies?.Name ?? UiText.BadgeSourceSubspecies(LanguageState.CurrentLanguage)) : UiText.BadgeSourceBase(LanguageState.CurrentLanguage))
+                                    </span>
+                                </div>
+                                @if (item.Trait.RequiredLevel > 1)
+                                {
+                                    <span class="badge bg-secondary small" style="font-size: 0.65rem;">
+                                        @UiText.LabelRequiredLevel(item.Trait.RequiredLevel, LanguageState.CurrentLanguage)
+                                    </span>
+                                }
+                            </div>
+                            <p class="small mb-0" style="color: var(--rf-text-secondary); text-align: left; line-height: 1.5;">
+                                @item.Trait.Description
+                            </p>
+                        </div>
+                    }
+                </div>
+
+                @* MODAL ACTIONS *@
+                <div class="d-flex justify-content-end pt-3" style="border-top: 1px solid var(--rf-border-light);">
+                    <button class="btn btn-rf-outline" @onclick="CloseDetailModal">
+                        @UiText.BtnClose(LanguageState.CurrentLanguage)
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+}
 
 @* --- CREATE SPECIES MODAL --- *@
 @if (isModalOpen)
@@ -181,7 +347,6 @@
                 </div>
             </div>
 
-            @* Available sizes checkbox list *@
             <div class="mb-4">
                 <label class="rf-form-label">@UiText.LabelSizes(LanguageState.CurrentLanguage)</label>
                 <div class="d-flex flex-wrap gap-3 p-2 rounded" style="background: var(--rf-bg-card); border: 1px solid var(--rf-border-light);">
@@ -198,7 +363,6 @@
                 </div>
             </div>
 
-            @* Italian Translation Section *@
             <div class="p-3 mb-3 rounded" style="background-color: var(--rf-bg-card); border-left: 3px solid var(--rf-orange-primary);">
                 <div class="fw-bold mb-2 small" style="color: var(--rf-orange-primary);">@UiText.TabItalian(LanguageState.CurrentLanguage)</div>
                 <div class="mb-2">
@@ -211,7 +375,6 @@
                 </div>
             </div>
 
-            @* English Translation Section *@
             <div class="p-3 mb-4 rounded" style="background-color: var(--rf-bg-card); border-left: 3px solid #666;">
                 <div class="fw-bold mb-2 small text-secondary">@UiText.TabEnglish(LanguageState.CurrentLanguage)</div>
                 <div class="mb-2">
@@ -248,7 +411,42 @@
     private string selectedRulesetFilterString => selectedRulesetFilter.HasValue ? ((int)selectedRulesetFilter.Value).ToString() : "";
     private string selectedOriginFilterString => selectedOriginFilter.HasValue ? (selectedOriginFilter.Value ? "srd" : "homebrew") : "";
 
-    // Modal state
+    // Consultation / Detail modal state
+    private bool isDetailModalOpen = false;
+    private bool isDetailLoading = false;
+    private SpeciesDetailResponseDto? selectedDetail = null;
+    private Guid? selectedSubspeciesId = null;
+
+    // Interactive helper properties
+    private SubspeciesResponseDto? ActiveSubspecies =>
+        selectedDetail?.Subspecies.FirstOrDefault(s => s.Id == selectedSubspeciesId);
+
+    private int ActiveSpeed =>
+        ActiveSubspecies?.BaseSpeedOverrideInFeet ?? selectedDetail?.BaseSpeedInFeet ?? 30;
+
+    private record DisplayTraitItem(TraitResponseDto Trait, bool IsSubspeciesTrait);
+
+    private List<DisplayTraitItem> ActiveTraits
+    {
+        get
+        {
+            var list = new List<DisplayTraitItem>();
+            if (selectedDetail == null) return list;
+
+            // Add base traits
+            list.AddRange(selectedDetail.BaseTraits.Select(t => new DisplayTraitItem(t, false)));
+
+            // Add selected subspecies traits
+            if (ActiveSubspecies != null)
+            {
+                list.AddRange(ActiveSubspecies.Traits.Select(t => new DisplayTraitItem(t, true)));
+            }
+
+            return list;
+        }
+    }
+
+    // Create modal state
     private bool isModalOpen = false;
     private bool isSaving = false;
     private string? formValidationMessage;
@@ -272,6 +470,11 @@
 
     private async void HandleLanguageChanged()
     {
+        if (isDetailModalOpen && selectedDetail != null)
+        {
+            selectedDetail = await SpeciesService.GetSpeciesDetailAsync(selectedDetail.Id, LanguageState.CurrentLanguage);
+        }
+
         await LoadData();
         StateHasChanged();
     }
@@ -282,6 +485,22 @@
         errorMessage = null;
         speciesList = await SpeciesService.GetSpeciesAsync(LanguageState.CurrentLanguage, selectedRulesetFilter, selectedOriginFilter);
         isLoading = false;
+    }
+
+    private async Task OpenDetailModal(Guid id)
+    {
+        isDetailModalOpen = true;
+        isDetailLoading = true;
+        selectedSubspeciesId = null; // Default to base species
+        selectedDetail = await SpeciesService.GetSpeciesDetailAsync(id, LanguageState.CurrentLanguage);
+        isDetailLoading = false;
+    }
+
+    private void CloseDetailModal()
+    {
+        isDetailModalOpen = false;
+        selectedDetail = null;
+        selectedSubspeciesId = null;
     }
 
     private async Task OnRulesetFilterChanged(ChangeEventArgs e)

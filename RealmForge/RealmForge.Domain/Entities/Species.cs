@@ -12,6 +12,10 @@ namespace RealmForge.Domain.Entities
 
 		//	Collection of localized texts for this species
 		public ICollection<SpeciesTranslation> Translations { get; set; } = new List<SpeciesTranslation>();
+
+		//	Associated base traits and lineages / subspecies
+		public ICollection<Trait> Traits { get; set; } = new List<Trait>();
+		public ICollection<Subspecies> Subspecies { get; set; } = new List<Subspecies>();
 	}
 
 	public class SpeciesTranslation
