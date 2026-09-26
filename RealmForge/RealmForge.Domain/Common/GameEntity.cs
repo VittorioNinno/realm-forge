@@ -1,15 +1,18 @@
-﻿namespace RealmForge.Domain.Common;
+﻿using RealmForge.Domain.Enums;
 
-public abstract class GameEntity
+namespace RealmForge.Domain.Common
 {
-	public Guid Id { get; set; } = Guid.NewGuid();
+	public abstract class GameEntity
+	{
+		public Guid Id { get; set; } = Guid.NewGuid();
 
-	//	True if the data is part of the official System Reference Document (SRD), false if Homebrew
-	public bool IsOfficialSRD { get; set; } = false;
+		//	Applicable ruleset version (defaulting to the modern 2024 revision)
+		public RulesetVersion Ruleset { get; set; } = RulesetVersion.Dnd5e_2024;
 
-	//	If null, it is base system/SRD content; otherwise, it corresponds to the author identifier
-	public string? AuthorId { get; set; }
+		//	True if the data belongs to the official SRD, false if Homebrew
+		public bool IsOfficialSRD { get; set; } = false;
 
-	public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
-	public DateTime? UpdatedAtUtc { get; set; }
+		//	If null, it represents base system content; otherwise, it stores the author identifier
+		public string? AuthorId { get; set; }
+	}
 }

@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using Microsoft.Extensions.Logging;
 using RealmForge.Domain.DTOs;
 using RealmForge.Domain.Enums;
 
@@ -7,22 +8,37 @@ namespace RealmForge.Client.Services
 	public class SpeciesDataService
 	{
 		private readonly HttpClient _http;
+		private readonly ILogger<SpeciesDataService> _logger;
 
-		public SpeciesDataService(HttpClient http)
+		public SpeciesDataService(HttpClient http, ILogger<SpeciesDataService> logger)
 		{
 			_http = http;
+			_logger = logger;
 		}
 
-		public async Task<List<SpeciesResponseDto>> GetSpeciesAsync(LanguageCode lang)
+		public async Task<List<SpeciesResponseDto>> GetSpeciesAsync(
+			LanguageCode language,
+			RulesetVersion? ruleset = null,
+			bool? isOfficial = null)
 		{
 			try
 			{
-				var response = await _http.GetFromJsonAsync<List<SpeciesResponseDto>>($"api/species?lang={(int)lang}");
+				var url = $"api/species?lang={(int)language}";
+				if (ruleset.HasValue)
+				{
+					url += $"&ruleset={(int)ruleset.Value}";
+				}
+				if (isOfficial.HasValue)
+				{
+					url += $"&isOfficial={isOfficial.Value.ToString().ToLower()}";
+				}
+
+				var response = await _http.GetFromJsonAsync<List<SpeciesResponseDto>>(url);
 				return response ?? new List<SpeciesResponseDto>();
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine($"Error retrieving species: {ex.Message}");
+				_logger.LogError(ex, "Failed to load species from API for language {Language}", language);
 				return new List<SpeciesResponseDto>();
 			}
 		}
@@ -36,7 +52,7 @@ namespace RealmForge.Client.Services
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine($"Error creating species: {ex.Message}");
+				_logger.LogError(ex, "Error creating species");
 				return false;
 			}
 		}

@@ -78,7 +78,13 @@ namespace RealmForge.Client.Localization
 			lang == LanguageCode.It ? "Velocità Base" : "Base Speed";
 
 		public static string LabelIsSRD(LanguageCode lang) =>
-			lang == LanguageCode.It ? "Specie Ufficiale SRD 5e" : "Official SRD 5e Species";
+			lang == LanguageCode.It ? "Contenuto Ufficiale (SRD)" : "Official Content (SRD)";
+
+		public static string BadgeSRD(LanguageCode lang) =>
+			lang == LanguageCode.It ? "SRD" : "SRD";
+
+		public static string BadgeHomebrew(LanguageCode lang) =>
+			lang == LanguageCode.It ? "Homebrew" : "Homebrew";
 
 		public static string TabItalian(LanguageCode lang) =>
 			lang == LanguageCode.It ? "🇮🇹 Traduzione Italiana" : "🇮🇹 Italian Translation";
@@ -166,5 +172,37 @@ namespace RealmForge.Client.Localization
 
 			return $"{speedInFeet} ft.";
 		}
+
+		//	Ruleset Version Localization
+		public static string LabelRuleset(LanguageCode lang) =>
+			lang == LanguageCode.It ? "Regolamento / Edizione" : "Ruleset / Edition";
+
+		public static string FormatRuleset(RulesetVersion ruleset, LanguageCode lang) => (ruleset, lang) switch
+		{
+			(RulesetVersion.Dnd5e_2014, LanguageCode.It) => "5e (2014)",
+			(RulesetVersion.Dnd5e_2014, LanguageCode.En) => "5e (2014)",
+			(RulesetVersion.Dnd5e_2024, LanguageCode.It) => "5.5e (2024)",
+			(RulesetVersion.Dnd5e_2024, LanguageCode.En) => "5.5e (2024)",
+			_ => ruleset.ToString()
+		};
+
+		//	Filter Bar Labels
+		public static string LabelOrigin(LanguageCode lang) =>
+			lang == LanguageCode.It ? "Origine Contenuto" : "Content Origin";
+
+		public static string FilterAll(LanguageCode lang) =>
+			lang == LanguageCode.It ? "Tutti" : "All";
+
+		public static string FilterRulesetAll(LanguageCode lang) =>
+			lang == LanguageCode.It ? "Tutte le Edizioni" : "All Editions";
+
+		public static string FilterOriginAll(LanguageCode lang) =>
+			lang == LanguageCode.It ? "Tutte le Origini" : "All Origins";
+
+		public static string FilterOnlySRD(LanguageCode lang) =>
+			lang == LanguageCode.It ? "Solo Ufficiale (SRD)" : "Official SRD Only";
+
+		public static string FilterOnlyHomebrew(LanguageCode lang) =>
+			lang == LanguageCode.It ? "Solo Homebrew" : "Homebrew Only";
 	}
 }

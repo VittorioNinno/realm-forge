@@ -10,6 +10,7 @@
 <PageTitle>RealmForge - @UiText.SpeciesTitle(LanguageState.CurrentLanguage)</PageTitle>
 
 <div class="container-fluid px-0 py-4">
+    @* Page Header *@
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-3" style="border-bottom: 2px solid var(--rf-orange-primary);">
         <div>
             <h1 class="h3 fw-bold mb-1 rf-page-title">@UiText.SpeciesTitle(LanguageState.CurrentLanguage)</h1>
@@ -25,6 +26,7 @@
         </div>
     </div>
 
+    @* Error Alert *@
     @if (!string.IsNullOrEmpty(errorMessage))
     {
         <div class="alert alert-danger bg-dark border-danger text-light mb-4">
@@ -32,6 +34,32 @@
         </div>
     }
 
+    @* --- FILTER BAR --- *@
+    <div class="row g-3 mb-4 p-3 rounded" style="background-color: var(--rf-bg-surface); border: 1px solid var(--rf-border-light);">
+        <div class="col-md-4 col-sm-6">
+            <label class="rf-form-label small text-uppercase" style="letter-spacing: 0.5px;">
+                @UiText.LabelRuleset(LanguageState.CurrentLanguage)
+            </label>
+            <select class="rf-form-control" value="@selectedRulesetFilterString" @onchange="OnRulesetFilterChanged">
+                <option value="">@UiText.FilterRulesetAll(LanguageState.CurrentLanguage)</option>
+                <option value="@((int)RulesetVersion.Dnd5e_2024)">@UiText.FormatRuleset(RulesetVersion.Dnd5e_2024, LanguageState.CurrentLanguage)</option>
+                <option value="@((int)RulesetVersion.Dnd5e_2014)">@UiText.FormatRuleset(RulesetVersion.Dnd5e_2014, LanguageState.CurrentLanguage)</option>
+            </select>
+        </div>
+
+        <div class="col-md-4 col-sm-6">
+            <label class="rf-form-label small text-uppercase" style="letter-spacing: 0.5px;">
+                @UiText.LabelOrigin(LanguageState.CurrentLanguage)
+            </label>
+            <select class="rf-form-control" value="@selectedOriginFilterString" @onchange="OnOriginFilterChanged">
+                <option value="">@UiText.FilterOriginAll(LanguageState.CurrentLanguage)</option>
+                <option value="srd">@UiText.FilterOnlySRD(LanguageState.CurrentLanguage)</option>
+                <option value="homebrew">@UiText.FilterOnlyHomebrew(LanguageState.CurrentLanguage)</option>
+            </select>
+        </div>
+    </div>
+
+    @* --- SPECIES GRID --- *@
     @if (isLoading)
     {
         <div class="text-center my-5 py-5">
@@ -57,13 +85,20 @@
                 <div class="col">
                     <div class="rf-card h-100 d-flex flex-column justify-content-between">
                         <div>
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <span class="rf-card-title">@sp.Name</span>
-                                <span class="badge @(sp.IsOfficialSRD ? "badge-srd" : "badge-homebrew")">
-                                    @(sp.IsOfficialSRD ? "SRD 5e" : "Homebrew")
-                                </span>
+                            @* CARD HEADER: Name on the left, Clean Badges on the right *@
+                            <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
+                                <span class="rf-card-title mb-0">@sp.Name</span>
+                                <div class="d-flex gap-1 flex-shrink-0 align-items-center">
+                                    <span class="badge @(sp.Ruleset == RulesetVersion.Dnd5e_2024 ? "badge-edition-2024" : "badge-edition-2014")">
+                                        @UiText.FormatRuleset(sp.Ruleset, LanguageState.CurrentLanguage)
+                                    </span>
+                                    <span class="badge @(sp.IsOfficialSRD ? "badge-srd" : "badge-homebrew")">
+                                        @(sp.IsOfficialSRD ? UiText.BadgeSRD(LanguageState.CurrentLanguage) : UiText.BadgeHomebrew(LanguageState.CurrentLanguage))
+                                    </span>
+                                </div>
                             </div>
 
+                            @* CARD METADATA *@
                             <div class="rf-meta-row">
                                 <div>
                                     <strong>@UiText.LabelCreatureType(LanguageState.CurrentLanguage)</strong>
@@ -79,6 +114,7 @@
                                 </div>
                             </div>
 
+                            @* CARD DESCRIPTION *@
                             <p class="small lh-base mb-0" style="color: var(--rf-text-secondary); text-align: justify;">
                                 @(string.IsNullOrWhiteSpace(sp.Description) ? UiText.NoDescription(LanguageState.CurrentLanguage) : sp.Description)
                             </p>
@@ -108,6 +144,15 @@
 
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
+                    <label class="rf-form-label">@UiText.LabelRuleset(LanguageState.CurrentLanguage)</label>
+                    <select class="rf-form-control" @bind="newRuleset">
+                        @foreach (var ruleset in Enum.GetValues<RulesetVersion>())
+                        {
+                            <option value="@ruleset">@UiText.FormatRuleset(ruleset, LanguageState.CurrentLanguage)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6">
                     <label class="rf-form-label">@UiText.LabelCreatureType(LanguageState.CurrentLanguage)</label>
                     <select class="rf-form-control" @bind="newCreatureType">
                         @foreach (var type in Enum.GetValues<CreatureType>())
@@ -116,6 +161,9 @@
                         }
                     </select>
                 </div>
+            </div>
+
+            <div class="row g-3 mb-3">
                 <div class="col-md-6">
                     <label class="rf-form-label">
                         @UiText.LabelSpeed(LanguageState.CurrentLanguage)
@@ -123,10 +171,18 @@
                     </label>
                     <input type="number" class="rf-form-control" @bind="newSpeed" min="5" step="5" />
                 </div>
+                <div class="col-md-6 d-flex align-items-end">
+                    <label class="rf-checkbox-wrapper mb-2">
+                        <input type="checkbox" class="rf-checkbox" @bind="newIsSRD" />
+                        <span class="small fw-bold" style="color: var(--rf-text-secondary);">
+                            @UiText.LabelIsSRD(LanguageState.CurrentLanguage)
+                        </span>
+                    </label>
+                </div>
             </div>
 
             @* Available sizes checkbox list *@
-            <div class="mb-3">
+            <div class="mb-4">
                 <label class="rf-form-label">@UiText.LabelSizes(LanguageState.CurrentLanguage)</label>
                 <div class="d-flex flex-wrap gap-3 p-2 rounded" style="background: var(--rf-bg-card); border: 1px solid var(--rf-border-light);">
                     @foreach (var size in Enum.GetValues<CreatureSize>())
@@ -140,13 +196,6 @@
                         </label>
                     }
                 </div>
-            </div>
-
-            <div class="mb-4">
-                <label class="rf-checkbox-wrapper">
-                    <input type="checkbox" class="rf-checkbox" @bind="newIsSRD" />
-                    <span class="small fw-bold" style="color: var(--rf-text-secondary);">@UiText.LabelIsSRD(LanguageState.CurrentLanguage)</span>
-                </label>
             </div>
 
             @* Italian Translation Section *@
@@ -192,6 +241,13 @@
     private bool isLoading = true;
     private string? errorMessage;
 
+    // Filters state
+    private RulesetVersion? selectedRulesetFilter = null;
+    private bool? selectedOriginFilter = null;
+
+    private string selectedRulesetFilterString => selectedRulesetFilter.HasValue ? ((int)selectedRulesetFilter.Value).ToString() : "";
+    private string selectedOriginFilterString => selectedOriginFilter.HasValue ? (selectedOriginFilter.Value ? "srd" : "homebrew") : "";
+
     // Modal state
     private bool isModalOpen = false;
     private bool isSaving = false;
@@ -199,6 +255,7 @@
 
     // Form fields
     private int newSpeed = 30;
+    private RulesetVersion newRuleset = RulesetVersion.Dnd5e_2024;
     private CreatureType newCreatureType = CreatureType.Humanoid;
     private HashSet<CreatureSize> selectedSizes = new() { CreatureSize.Medium };
     private bool newIsSRD = false;
@@ -223,14 +280,43 @@
     {
         isLoading = true;
         errorMessage = null;
-        speciesList = await SpeciesService.GetSpeciesAsync(LanguageState.CurrentLanguage);
+        speciesList = await SpeciesService.GetSpeciesAsync(LanguageState.CurrentLanguage, selectedRulesetFilter, selectedOriginFilter);
         isLoading = false;
+    }
+
+    private async Task OnRulesetFilterChanged(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString();
+        if (int.TryParse(value, out var intVal) && Enum.IsDefined(typeof(RulesetVersion), intVal))
+        {
+            selectedRulesetFilter = (RulesetVersion)intVal;
+        }
+        else
+        {
+            selectedRulesetFilter = null;
+        }
+
+        await LoadData();
+    }
+
+    private async Task OnOriginFilterChanged(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString();
+        selectedOriginFilter = value switch
+        {
+            "srd" => true,
+            "homebrew" => false,
+            _ => null
+        };
+
+        await LoadData();
     }
 
     private void OpenCreateModal()
     {
         formValidationMessage = null;
         newSpeed = 30;
+        newRuleset = RulesetVersion.Dnd5e_2024;
         newCreatureType = CreatureType.Humanoid;
         selectedSizes = new HashSet<CreatureSize> { CreatureSize.Medium };
         newIsSRD = false;
@@ -284,6 +370,7 @@
             newSpeed,
             selectedSizes.ToList(),
             newCreatureType,
+            newRuleset,
             newIsSRD,
             new List<SpeciesTranslationDto>
             {

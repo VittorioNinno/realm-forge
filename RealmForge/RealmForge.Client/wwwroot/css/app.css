@@ -91,31 +91,6 @@ h1, h2, h3, h4, h5, h6, .rf-page-title, .brand-title {
     margin-bottom: 6px;
 }
 
-/* Badge Trait-Pill */
-.badge-srd {
-    background: #1d1d1d !important;
-    border: 1px solid var(--rf-border-light) !important;
-    padding: 5px 12px !important;
-    border-radius: 4px !important;
-    font-size: 0.75em !important;
-    color: var(--rf-orange-primary) !important;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.badge-homebrew {
-    background: #1d1d1d !important;
-    border: 1px solid #444 !important;
-    padding: 5px 12px !important;
-    border-radius: 4px !important;
-    font-size: 0.75em !important;
-    color: #e0e0e0 !important;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
 /* Metadata grid */
 .rf-meta-row {
     display: grid;
@@ -137,6 +112,52 @@ h1, h2, h3, h4, h5, h6, .rf-page-title, .brand-title {
         display: block;
         margin-bottom: 2px;
     }
+
+/* --- BADGES (Uniform Dimensions, High Contrast) --- */
+.badge-edition-2024,
+.badge-edition-2014,
+.badge-srd,
+.badge-homebrew {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.8px !important;
+    text-transform: uppercase;
+    padding: 3px 8px !important;
+    border-radius: 4px !important;
+    line-height: 1.2 !important;
+    box-sizing: border-box;
+}
+
+/* Edition: 5.5e (2024) - Forge Amber */
+.badge-edition-2024 {
+    background: rgba(255, 140, 0, 0.16) !important;
+    color: #ff9d26 !important;
+    border: 1px solid rgba(255, 140, 0, 0.6) !important;
+}
+
+/* Edition: 5e (2014) - Iron Steel */
+.badge-edition-2014 {
+    background: rgba(140, 140, 140, 0.12) !important;
+    color: #cfd4dc !important;
+    border: 1px solid rgba(140, 140, 140, 0.45) !important;
+}
+
+/* Origin: SRD - Runecraft Emerald */
+.badge-srd {
+    background: rgba(46, 204, 113, 0.14) !important;
+    color: #2ecc71 !important;
+    border: 1px solid rgba(46, 204, 113, 0.5) !important;
+}
+
+/* Origin: Homebrew - Arcane Amethyst */
+.badge-homebrew {
+    background: rgba(171, 71, 188, 0.15) !important;
+    color: #ce93d8 !important;
+    border: 1px solid rgba(171, 71, 188, 0.55) !important;
+}
 
 /* D&D Wizard styled buttons */
 .btn-rf-orange {

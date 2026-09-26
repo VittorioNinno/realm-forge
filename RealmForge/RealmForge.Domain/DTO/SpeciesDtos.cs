@@ -12,6 +12,7 @@ namespace RealmForge.Domain.DTOs
 		int BaseSpeedInFeet,
 		List<CreatureSize> AllowedSizes,
 		CreatureType CreatureType,
+		RulesetVersion Ruleset,
 		bool IsOfficialSRD,
 		LanguageCode Language
 	);
@@ -23,6 +24,7 @@ namespace RealmForge.Domain.DTOs
 		int BaseSpeedInFeet,
 		List<CreatureSize> AllowedSizes,
 		CreatureType CreatureType,
+		RulesetVersion Ruleset,
 		bool IsOfficialSRD,
 		List<SpeciesTranslationDto> Translations
 	);

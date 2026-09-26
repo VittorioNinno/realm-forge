@@ -18,14 +18,29 @@ namespace RealmForge.Api.Controllers
 			_context = context;
 		}
 
-		//	GET: api/species?lang=1 (1 = En, 2 = It)
+		//	GET: api/species?lang=1&ruleset=2&isOfficial=true
 		[HttpGet]
-		public async Task<ActionResult<IEnumerable<SpeciesResponseDto>>> GetAll([FromQuery] LanguageCode lang = LanguageCode.En)
+		public async Task<ActionResult<IEnumerable<SpeciesResponseDto>>> GetAll(
+			[FromQuery] LanguageCode lang = LanguageCode.En,
+			[FromQuery] RulesetVersion? ruleset = null,
+			[FromQuery] bool? isOfficial = null)
 		{
-			var speciesList = await _context.Species
+			var query = _context.Species
 				.Include(s => s.Translations)
 				.AsNoTracking()
-				.ToListAsync();
+				.AsQueryable();
+
+			if (ruleset.HasValue)
+			{
+				query = query.Where(s => s.Ruleset == ruleset.Value);
+			}
+
+			if (isOfficial.HasValue)
+			{
+				query = query.Where(s => s.IsOfficialSRD == isOfficial.Value);
+			}
+
+			var speciesList = await query.ToListAsync();
 
 			var result = speciesList.Select(s =>
 			{
@@ -40,6 +55,7 @@ namespace RealmForge.Api.Controllers
 					s.BaseSpeedInFeet,
 					s.AllowedSizes,
 					s.CreatureType,
+					s.Ruleset,
 					s.IsOfficialSRD,
 					translation?.Language ?? lang
 				);
@@ -72,6 +88,7 @@ namespace RealmForge.Api.Controllers
 				species.BaseSpeedInFeet,
 				species.AllowedSizes,
 				species.CreatureType,
+				species.Ruleset,
 				species.IsOfficialSRD,
 				translation?.Language ?? lang
 			);
@@ -98,6 +115,7 @@ namespace RealmForge.Api.Controllers
 				BaseSpeedInFeet = dto.BaseSpeedInFeet,
 				AllowedSizes = dto.AllowedSizes,
 				CreatureType = dto.CreatureType,
+				Ruleset = dto.Ruleset,
 				IsOfficialSRD = dto.IsOfficialSRD,
 				Translations = dto.Translations.Select(t => new SpeciesTranslation
 				{
@@ -119,6 +137,7 @@ namespace RealmForge.Api.Controllers
 				species.BaseSpeedInFeet,
 				species.AllowedSizes,
 				species.CreatureType,
+				species.Ruleset,
 				species.IsOfficialSRD,
 				firstTranslation?.Language ?? LanguageCode.En
 			);
