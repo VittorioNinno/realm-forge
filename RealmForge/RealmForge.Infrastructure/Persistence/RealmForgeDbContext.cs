@@ -22,6 +22,9 @@ namespace RealmForge.Infrastructure.Persistence
 		public DbSet<Trait> Traits => Set<Trait>();
 		public DbSet<TraitTranslation> TraitTranslations => Set<TraitTranslation>();
 
+		public DbSet<Feat> Feats => Set<Feat>();
+		public DbSet<FeatTranslation> FeatTranslations => Set<FeatTranslation>();
+
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			base.OnModelCreating(modelBuilder);
@@ -121,6 +124,24 @@ namespace RealmForge.Infrastructure.Persistence
 
 				//	Unique index: a trait cannot have two translations for the same language
 				entity.HasIndex(t => new { t.TraitId, t.Language }).IsUnique();
+			});
+
+			//	Feats configuration
+			modelBuilder.Entity<Feat>(entity =>
+			{
+				entity.HasKey(f => f.Id);
+				entity.HasMany(f => f.Translations)
+						.WithOne(t => t.Feat)
+						.HasForeignKey(t => t.FeatId)
+						.OnDelete(DeleteBehavior.Cascade);
+			});
+
+			//	Feats translations configuration
+			modelBuilder.Entity<FeatTranslation>(entity =>
+			{
+				entity.HasKey(t => t.Id);
+				entity.Property(t => t.Name).IsRequired().HasMaxLength(150);
+				entity.Property(t => t.Description).IsRequired();
 			});
 		}
 	}

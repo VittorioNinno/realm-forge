@@ -21,6 +21,7 @@ namespace RealmForge.Client
 
 			//	API data management service
 			builder.Services.AddScoped<SpeciesDataService>();
+			builder.Services.AddScoped<FeatDataService>();
 
 			//	UI language state management service
 			builder.Services.AddScoped<LanguageStateService>();

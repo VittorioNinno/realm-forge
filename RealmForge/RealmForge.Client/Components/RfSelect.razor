@@ -1,0 +1,54 @@
+﻿@typeparam TValue
+
+<div class="rf-custom-select-wrapper" @onclick:stopPropagation="true">
+    @* Barra principale del Select (mantiene larghezza 100% del contenitore) *@
+    <div class="rf-custom-select-trigger @(isOpen ? "active" : "")" @onclick="ToggleOpen">
+        <span class="rf-select-value">@GetSelectedLabel()</span>
+        <span class="rf-select-arrow @(isOpen ? "open" : "")">▼</span>
+    </div>
+
+    @* Menu a tendina a tema Nero / Arancione *@
+    @if (isOpen)
+    {
+        <div class="rf-custom-select-menu">
+            @foreach (var opt in Options)
+            {
+                var isSelected = EqualityComparer<TValue>.Default.Equals(opt.Value, Value);
+                <div class="rf-custom-select-option @(isSelected ? "selected" : "")"
+                     @onclick="() => SelectItem(opt.Value)">
+                    @opt.Label
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    public record OptionItem(TValue Value, string Label);
+
+    [Parameter] public TValue? Value { get; set; }
+    [Parameter] public EventCallback<TValue> ValueChanged { get; set; }
+    [Parameter] public List<OptionItem> Options { get; set; } = new();
+    [Parameter] public EventCallback OnChange { get; set; }
+
+    private bool isOpen = false;
+
+    private void ToggleOpen() => isOpen = !isOpen;
+
+    private async Task SelectItem(TValue val)
+    {
+        Value = val;
+        isOpen = false;
+        await ValueChanged.InvokeAsync(val);
+        if (OnChange.HasDelegate)
+        {
+            await OnChange.InvokeAsync();
+        }
+    }
+
+    private string GetSelectedLabel()
+    {
+        var match = Options.FirstOrDefault(o => EqualityComparer<TValue>.Default.Equals(o.Value, Value));
+        return match?.Label ?? string.Empty;
+    }
+}

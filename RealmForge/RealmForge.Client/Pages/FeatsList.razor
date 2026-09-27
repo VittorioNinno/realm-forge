@@ -1,0 +1,507 @@
+﻿@page "/feats"
+@using RealmForge.Client.Components
+@using RealmForge.Client.Localization
+@using RealmForge.Client.Services
+@using RealmForge.Domain.DTOs
+@using RealmForge.Domain.Enums
+@implements IDisposable
+@inject FeatDataService FeatService
+@inject LanguageStateService LanguageState
+@inject NavigationManager Navigation
+
+<PageTitle>RealmForge - @UiText.FeatsTitle(LanguageState.CurrentLanguage)</PageTitle>
+
+<div class="container-fluid px-0 py-4">
+    @* --- PAGE HEADER --- *@
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-3" style="border-bottom: 2px solid var(--rf-orange-primary);">
+        <div>
+            <h1 class="h3 fw-bold mb-1 rf-page-title">@UiText.FeatsTitle(LanguageState.CurrentLanguage)</h1>
+            <p class="mb-0 small" style="color: var(--rf-text-muted); letter-spacing: 1px; text-transform: uppercase;">
+                @UiText.FeatsSubtitle(LanguageState.CurrentLanguage)
+            </p>
+        </div>
+
+        <div>
+            <button class="btn btn-rf-orange" @onclick="OpenCreateModal">
+                @(LanguageState.CurrentLanguage == LanguageCode.It ? "+ Nuovo Talento" : "+ Add Feat")
+            </button>
+        </div>
+    </div>
+
+    @* --- FILTER BAR --- *@
+    <div class="row g-3 mb-4 p-3 rounded" style="background-color: var(--rf-bg-surface); border: 1px solid var(--rf-border-light);">
+        @* Search Input *@
+        <div class="col-md-6 col-sm-12">
+            <label class="rf-form-label small text-uppercase" style="letter-spacing: 0.5px;">
+                @(LanguageState.CurrentLanguage == LanguageCode.It ? "Cerca Talento" : "Search Feat")
+            </label>
+            <input type="text"
+                   class="rf-form-control"
+                   placeholder="@UiText.PlaceholderSearchFeats(LanguageState.CurrentLanguage)"
+                   @bind="SearchTerm"
+                   @bind:event="oninput" />
+        </div>
+
+        @* Custom Dark Fantasy Ruleset Selector *@
+        <div class="col-md-6 col-sm-12">
+            <label class="rf-form-label small text-uppercase" style="letter-spacing: 0.5px;">
+                @UiText.LabelRuleset(LanguageState.CurrentLanguage)
+            </label>
+            <RfSelect TValue="string"
+                      @bind-Value="SelectedRulesetFilterString"
+                      OnChange="LoadFeatsAsync"
+                      Options="@(new List<RfSelect<string>.OptionItem>
+                      {
+                          new("", UiText.FilterRulesetAll(LanguageState.CurrentLanguage)),
+                          new(((int)RulesetVersion.Dnd5e_2024).ToString(), UiText.FormatRuleset(RulesetVersion.Dnd5e_2024, LanguageState.CurrentLanguage)),
+                          new(((int)RulesetVersion.Dnd5e_2014).ToString(), UiText.FormatRuleset(RulesetVersion.Dnd5e_2014, LanguageState.CurrentLanguage))
+                      })" />
+        </div>
+
+        @* Category Pill Filters *@
+        <div class="col-12 mt-2">
+            <label class="rf-form-label mb-2 small text-uppercase" style="letter-spacing: 0.5px;">
+                @(LanguageState.CurrentLanguage == LanguageCode.It ? "Categoria Talento" : "Feat Category")
+            </label>
+            <div class="rf-pill-group">
+                <button type="button"
+                        class="rf-pill-btn @(SelectedCategory == null ? "active" : "")"
+                        @onclick="() => FilterByCategory(null)">
+                    @UiText.FilterCategoryAll(LanguageState.CurrentLanguage)
+                </button>
+                <button type="button"
+                        class="rf-pill-btn @(SelectedCategory == FeatCategory.Origin ? "active" : "")"
+                        @onclick="() => FilterByCategory(FeatCategory.Origin)">
+                    @UiText.FormatFeatCategory(FeatCategory.Origin, LanguageState.CurrentLanguage)
+                </button>
+                <button type="button"
+                        class="rf-pill-btn @(SelectedCategory == FeatCategory.General ? "active" : "")"
+                        @onclick="() => FilterByCategory(FeatCategory.General)">
+                    @UiText.FormatFeatCategory(FeatCategory.General, LanguageState.CurrentLanguage)
+                </button>
+                <button type="button"
+                        class="rf-pill-btn @(SelectedCategory == FeatCategory.FightingStyle ? "active" : "")"
+                        @onclick="() => FilterByCategory(FeatCategory.FightingStyle)">
+                    @UiText.FormatFeatCategory(FeatCategory.FightingStyle, LanguageState.CurrentLanguage)
+                </button>
+                <button type="button"
+                        class="rf-pill-btn @(SelectedCategory == FeatCategory.EpicBoon ? "active" : "")"
+                        @onclick="() => FilterByCategory(FeatCategory.EpicBoon)">
+                    @UiText.FormatFeatCategory(FeatCategory.EpicBoon, LanguageState.CurrentLanguage)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @* --- FEATS GRID --- *@
+    @if (IsLoading)
+    {
+        <div class="text-center my-5 py-5">
+            <div class="spinner-border" style="color: var(--rf-orange-primary);" role="status"></div>
+            <p class="mt-3" style="color: var(--rf-text-muted); text-transform: uppercase; letter-spacing: 1px;">
+                @UiText.LoadingFeats(LanguageState.CurrentLanguage)
+            </p>
+        </div>
+    }
+    else if (!FilteredFeats.Any())
+    {
+        <div class="p-4 rounded text-center" style="background-color: var(--rf-bg-surface); border: 1px solid var(--rf-border-light);">
+            <p class="mb-0" style="color: var(--rf-text-muted);">
+                @UiText.NoFeatsFound(LanguageState.CurrentLanguage)
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+            @foreach (var feat in FilteredFeats)
+            {
+                <div class="col">
+                    <div class="rf-card h-100 d-flex flex-column justify-content-between"
+                         style="cursor: pointer;"
+                         @onclick="() => OpenDetailAsync(feat.Id)">
+                        <div>
+                            @* CARD HEADER *@
+                            <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
+                                <span class="rf-card-title mb-0">@feat.Name</span>
+                                <div class="d-flex gap-1 flex-shrink-0 align-items-center">
+                                    <span class="badge @(feat.Ruleset == RulesetVersion.Dnd5e_2024 ? "badge-edition-2024" : "badge-edition-2014")">
+                                        @UiText.FormatRuleset(feat.Ruleset, LanguageState.CurrentLanguage)
+                                    </span>
+                                    <span class="badge @(feat.IsOfficialSRD ? "badge-srd" : "badge-homebrew")">
+                                        @(feat.IsOfficialSRD ? UiText.BadgeSRD(LanguageState.CurrentLanguage) : UiText.BadgeHomebrew(LanguageState.CurrentLanguage))
+                                    </span>
+                                </div>
+                            </div>
+
+                            @* CARD METADATA *@
+                            <div class="rf-meta-row">
+                                <div>
+                                    <strong>@(LanguageState.CurrentLanguage == LanguageCode.It ? "Categoria:" : "Category:")</strong>
+                                    <span style="color: #ffffff;">@UiText.FormatFeatCategory(feat.Category, LanguageState.CurrentLanguage)</span>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(feat.Prerequisite))
+                                {
+                                    <div>
+                                        <strong>@UiText.LabelPrerequisite(LanguageState.CurrentLanguage)</strong>
+                                        <span style="color: #ffffff;">@feat.Prerequisite</span>
+                                    </div>
+                                }
+                            </div>
+
+                            @* CARD DESCRIPTION *@
+                            <p class="small lh-base mb-3" style="color: var(--rf-text-secondary); text-align: left;">
+                                @(string.IsNullOrWhiteSpace(feat.ShortDescription) ? UiText.NoDescription(LanguageState.CurrentLanguage) : feat.ShortDescription)
+                            </p>
+                        </div>
+
+                        @* CARD FOOTER *@
+                        <div class="pt-3 d-flex justify-content-between align-items-center" style="border-top: 1px solid var(--rf-border-subtle);">
+                            <span class="badge bg-dark border border-warning text-warning small">
+                                @UiText.FormatFeatCategory(feat.Category, LanguageState.CurrentLanguage)
+                            </span>
+                            <button class="btn btn-sm btn-rf-outline" @onclick:stopPropagation="true" @onclick="() => OpenDetailAsync(feat.Id)">
+                                @UiText.BtnViewDetails(LanguageState.CurrentLanguage)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@* --- FEAT DETAIL MODAL --- *@
+@if (SelectedFeat != null)
+{
+    <div class="rf-modal-backdrop" @onclick="CloseDetail">
+        <div class="rf-modal-dialog" style="max-width: 760px;" @onclick:stopPropagation="true">
+            @* MODAL HEADER *@
+            <div class="d-flex justify-content-between align-items-start mb-3 pb-2" style="border-bottom: 2px solid var(--rf-orange-primary);">
+                <div>
+                    <h2 class="h3 mb-1" style="color: var(--rf-orange-primary); font-family: var(--rf-font-display);">
+                        @SelectedFeat.Name
+                    </h2>
+                    <div class="d-flex gap-2 mt-1">
+                        <span class="badge @(SelectedFeat.Ruleset == RulesetVersion.Dnd5e_2024 ? "badge-edition-2024" : "badge-edition-2014")">
+                            @UiText.FormatRuleset(SelectedFeat.Ruleset, LanguageState.CurrentLanguage)
+                        </span>
+                        <span class="badge @(SelectedFeat.IsOfficialSRD ? "badge-srd" : "badge-homebrew")">
+                            @(SelectedFeat.IsOfficialSRD ? UiText.BadgeSRD(LanguageState.CurrentLanguage) : UiText.BadgeHomebrew(LanguageState.CurrentLanguage))
+                        </span>
+                        <span class="badge bg-dark border border-warning text-warning">
+                            @UiText.FormatFeatCategory(SelectedFeat.Category, LanguageState.CurrentLanguage)
+                        </span>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-rf-outline" @onclick="CloseDetail">✕</button>
+            </div>
+
+            @* PREREQUISITE BANNER *@
+            @if (!string.IsNullOrWhiteSpace(SelectedFeat.Prerequisite))
+            {
+                <div class="p-3 mb-3 rounded" style="background-color: var(--rf-bg-main); border-left: 3px solid #ffb74d;">
+                    <strong class="text-warning small d-block mb-1 text-uppercase" style="letter-spacing: 0.5px;">
+                        @UiText.LabelPrerequisite(LanguageState.CurrentLanguage)
+                    </strong>
+                    <p class="small mb-0 text-light" style="text-align: left; line-height: 1.5;">
+                        @SelectedFeat.Prerequisite
+                    </p>
+                </div>
+            }
+
+            @* BODY / DESCRIPTION *@
+            <div class="mb-4">
+                <div class="p-3 rounded" style="background-color: var(--rf-bg-card); border-left: 3px solid var(--rf-orange-primary);">
+                    <p class="small mb-0 text-light" style="text-align: left; line-height: 1.6; white-space: pre-line;">
+                        @SelectedFeat.Description
+                    </p>
+                </div>
+            </div>
+
+            @* MODAL ACTIONS *@
+            <div class="d-flex justify-content-end pt-3" style="border-top: 1px solid var(--rf-border-light);">
+                <button class="btn btn-rf-outline" @onclick="CloseDetail">
+                    @UiText.BtnClose(LanguageState.CurrentLanguage)
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@* --- CREATE FEAT MODAL --- *@
+@if (isModalOpen)
+{
+    <div class="rf-modal-backdrop" @onclick="CloseCreateModal">
+        <div class="rf-modal-dialog" style="max-width: 680px;" @onclick:stopPropagation="true">
+            <h2 class="h4 mb-3 pb-2" style="border-bottom: 1px solid var(--rf-border-light); font-family: var(--rf-font-display);">
+                @(LanguageState.CurrentLanguage == LanguageCode.It ? "Aggiungi Nuovo Talento" : "Add New Feat")
+            </h2>
+
+            @if (!string.IsNullOrEmpty(formValidationMessage))
+            {
+                <div class="alert alert-warning bg-dark border-warning text-warning p-2 small mb-3">
+                    @formValidationMessage
+                </div>
+            }
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="rf-form-label">
+                        @(LanguageState.CurrentLanguage == LanguageCode.It ? "Categoria Talento" : "Feat Category")
+                    </label>
+                    <RfSelect TValue="FeatCategory"
+                              @bind-Value="newCategory"
+                              Options="@(Enum.GetValues<FeatCategory>().Select(c => new RfSelect<FeatCategory>.OptionItem(c, UiText.FormatFeatCategory(c, LanguageState.CurrentLanguage))).ToList())" />
+                </div>
+                <div class="col-md-6">
+                    <label class="rf-form-label">@UiText.LabelRuleset(LanguageState.CurrentLanguage)</label>
+                    <RfSelect TValue="RulesetVersion"
+                              @bind-Value="newRuleset"
+                              Options="@(Enum.GetValues<RulesetVersion>().Select(r => new RfSelect<RulesetVersion>.OptionItem(r, UiText.FormatRuleset(r, LanguageState.CurrentLanguage))).ToList())" />
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-8">
+                    <label class="rf-form-label">@UiText.LabelPrerequisite(LanguageState.CurrentLanguage)</label>
+                    <input type="text"
+                           class="rf-form-control"
+                           placeholder="@(LanguageState.CurrentLanguage == LanguageCode.It ? "Es. Livello 4+, Forza 13+" : "e.g. Level 4+, Strength 13+")"
+                           @bind="newPrerequisite" />
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <label class="rf-checkbox-wrapper mb-2">
+                        <input type="checkbox" class="rf-checkbox" @bind="newIsSRD" />
+                        <span class="small fw-bold" style="color: var(--rf-text-secondary);">
+                            @UiText.LabelIsSRD(LanguageState.CurrentLanguage)
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            @* Italian Details *@
+            <div class="p-3 mb-3 rounded" style="background-color: var(--rf-bg-card); border-left: 3px solid var(--rf-orange-primary);">
+                <div class="fw-bold mb-2 small" style="color: var(--rf-orange-primary);">@UiText.TabItalian(LanguageState.CurrentLanguage)</div>
+                <div class="mb-2">
+                    <label class="rf-form-label">@UiText.LabelName(LanguageState.CurrentLanguage)</label>
+                    <input type="text"
+                           class="rf-form-control"
+                           placeholder="@(LanguageState.CurrentLanguage == LanguageCode.It ? "Es. Abile, Allerta, Fortunato..." : "e.g. Skilled, Alert, Lucky...")"
+                           @bind="nameIt" />
+                </div>
+                <div>
+                    <label class="rf-form-label">@UiText.LabelDescription(LanguageState.CurrentLanguage)</label>
+                    <textarea class="rf-form-control" rows="3" @bind="descIt"></textarea>
+                </div>
+            </div>
+
+            @* English Details *@
+            <div class="p-3 mb-4 rounded" style="background-color: var(--rf-bg-card); border-left: 3px solid #666;">
+                <div class="fw-bold mb-2 small text-secondary">@UiText.TabEnglish(LanguageState.CurrentLanguage)</div>
+                <div class="mb-2">
+                    <label class="rf-form-label" style="color: var(--rf-text-secondary);">@UiText.LabelName(LanguageState.CurrentLanguage)</label>
+                    <input type="text"
+                           class="rf-form-control"
+                           placeholder="e.g. Skilled, Alert, Lucky..."
+                           @bind="nameEn" />
+                </div>
+                <div>
+                    <label class="rf-form-label" style="color: var(--rf-text-secondary);">@UiText.LabelDescription(LanguageState.CurrentLanguage)</label>
+                    <textarea class="rf-form-control" rows="3" @bind="descEn"></textarea>
+                </div>
+            </div>
+
+            @* Modal Footer *@
+            <div class="d-flex justify-content-end gap-2 pt-2" style="border-top: 1px solid var(--rf-border-light);">
+                <button class="btn btn-rf-outline" @onclick="CloseCreateModal">
+                    @UiText.BtnCancel(LanguageState.CurrentLanguage)
+                </button>
+                <button class="btn btn-rf-orange" @onclick="HandleSaveFeat" disabled="@isSaving">
+                    @(isSaving ? "..." : (LanguageState.CurrentLanguage == LanguageCode.It ? "Forgia Talento" : "Forge Feat"))
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    // Deep-linking query parameters
+    [SupplyParameterFromQuery(Name = "id")]
+    public Guid? QueryFeatId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "category")]
+    public int? QueryCategoryInt { get; set; }
+
+    // Filter states
+    private FeatCategory? SelectedCategory { get; set; }
+    private RulesetVersion? SelectedRuleset { get; set; }
+    private string SearchTerm { get; set; } = string.Empty;
+
+    // Ruleset string binding property for RfSelect
+    private string SelectedRulesetFilterString
+    {
+        get => SelectedRuleset.HasValue ? ((int)SelectedRuleset.Value).ToString() : "";
+        set
+        {
+            if (int.TryParse(value, out var intVal) && Enum.IsDefined(typeof(RulesetVersion), intVal))
+            {
+                SelectedRuleset = (RulesetVersion)intVal;
+            }
+            else
+            {
+                SelectedRuleset = null;
+            }
+        }
+    }
+
+    // Collections & modal state
+    private List<FeatResponseDto> AllFeats { get; set; } = new();
+    private FeatDetailResponseDto? SelectedFeat { get; set; }
+    private bool IsLoading { get; set; } = true;
+
+    // Create modal state
+    private bool isModalOpen = false;
+    private bool isSaving = false;
+    private string? formValidationMessage;
+
+    // Form fields
+    private FeatCategory newCategory = FeatCategory.Origin;
+    private RulesetVersion newRuleset = RulesetVersion.Dnd5e_2024;
+    private string? newPrerequisite = null;
+    private bool newIsSRD = false;
+    private string nameIt = "";
+    private string descIt = "";
+    private string nameEn = "";
+    private string descEn = "";
+
+    // In-memory filtered items
+    private IEnumerable<FeatResponseDto> FilteredFeats =>
+        string.IsNullOrWhiteSpace(SearchTerm)
+            ? AllFeats
+            : AllFeats.Where(f => f.Name.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                                  f.ShortDescription.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        LanguageState.OnLanguageChanged += HandleLanguageChanged;
+
+        if (QueryCategoryInt.HasValue && Enum.IsDefined(typeof(FeatCategory), QueryCategoryInt.Value))
+        {
+            SelectedCategory = (FeatCategory)QueryCategoryInt.Value;
+        }
+
+        await LoadFeatsAsync();
+
+        if (QueryFeatId.HasValue)
+        {
+            await OpenDetailAsync(QueryFeatId.Value);
+        }
+    }
+
+    private async void HandleLanguageChanged()
+    {
+        if (SelectedFeat != null)
+        {
+            SelectedFeat = await FeatService.GetFeatDetailAsync(SelectedFeat.Id, LanguageState.CurrentLanguage);
+        }
+
+        await LoadFeatsAsync();
+        StateHasChanged();
+    }
+
+    private async Task LoadFeatsAsync()
+    {
+        IsLoading = true;
+        AllFeats = await FeatService.GetFeatsAsync(LanguageState.CurrentLanguage, SelectedCategory, SelectedRuleset);
+        IsLoading = false;
+    }
+
+    private async Task FilterByCategory(FeatCategory? category)
+    {
+        SelectedCategory = category;
+        await LoadFeatsAsync();
+    }
+
+    private async Task OpenDetailAsync(Guid id)
+    {
+        SelectedFeat = await FeatService.GetFeatDetailAsync(id, LanguageState.CurrentLanguage);
+    }
+
+    private void CloseDetail()
+    {
+        SelectedFeat = null;
+    }
+
+    private void OpenCreateModal()
+    {
+        formValidationMessage = null;
+        newCategory = FeatCategory.Origin;
+        newRuleset = RulesetVersion.Dnd5e_2024;
+        newPrerequisite = null;
+        newIsSRD = false;
+        nameIt = "";
+        descIt = "";
+        nameEn = "";
+        descEn = "";
+        isModalOpen = true;
+    }
+
+    private void CloseCreateModal()
+    {
+        isModalOpen = false;
+    }
+
+    private async Task HandleSaveFeat()
+    {
+        if (string.IsNullOrWhiteSpace(nameIt) || string.IsNullOrWhiteSpace(nameEn))
+        {
+            formValidationMessage = UiText.ErrFillNames(LanguageState.CurrentLanguage);
+            return;
+        }
+
+        isSaving = true;
+        formValidationMessage = null;
+
+        var dto = new CreateFeatDto
+        {
+            Category = newCategory,
+            Prerequisite = string.IsNullOrWhiteSpace(newPrerequisite) ? null : newPrerequisite.Trim(),
+            Ruleset = newRuleset,
+            IsOfficialSRD = newIsSRD,
+            Translations = new List<CreateFeatTranslationDto>
+            {
+                new CreateFeatTranslationDto
+                {
+                    Language = LanguageCode.It,
+                    Name = nameIt.Trim(),
+                    Description = descIt?.Trim() ?? string.Empty
+                },
+                new CreateFeatTranslationDto
+                {
+                    Language = LanguageCode.En,
+                    Name = nameEn.Trim(),
+                    Description = descEn?.Trim() ?? string.Empty
+                }
+            }
+        };
+
+        var success = await FeatService.CreateFeatAsync(dto);
+        isSaving = false;
+
+        if (success)
+        {
+            isModalOpen = false;
+            await LoadFeatsAsync();
+        }
+        else
+        {
+            formValidationMessage = UiText.ErrApiSave(LanguageState.CurrentLanguage);
+        }
+    }
+
+    public void Dispose()
+    {
+        LanguageState.OnLanguageChanged -= HandleLanguageChanged;
+    }
+}

@@ -241,22 +241,112 @@ h1, h2, h3, h4, h5, h6, .rf-page-title, .brand-title {
     display: block;
 }
 
+/* --- STANDARD FORM CONTROLS (Input / Textarea) --- */
 .rf-form-control {
-    background-color: var(--rf-bg-card);
-    border: 1px solid var(--rf-border-light);
-    color: #ffffff;
-    border-radius: 6px;
-    padding: 10px 14px;
-    font-size: 0.9em;
     width: 100%;
-    outline: none;
-    transition: border-color 0.2s;
+    background-color: var(--rf-bg-surface);
+    color: var(--rf-text-primary);
+    border: 1px solid var(--rf-border-light);
+    border-radius: 4px;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
     .rf-form-control:focus {
         border-color: var(--rf-orange-primary);
         box-shadow: 0 0 8px var(--rf-orange-glow);
+        outline: none;
     }
+
+/* --- RF CUSTOM SELECT (Nero & Arancione - Sostituisce il select nativo del browser) --- */
+.rf-custom-select-wrapper {
+    position: relative;
+    width: 100%;
+    user-select: none;
+}
+
+.rf-custom-select-trigger {
+    width: 100%;
+    background-color: var(--rf-bg-surface);
+    border: 1px solid var(--rf-border-light);
+    border-radius: 4px;
+    padding: 0.6rem 1rem;
+    color: var(--rf-text-primary);
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .rf-custom-select-trigger:hover,
+    .rf-custom-select-trigger.active {
+        border-color: var(--rf-orange-primary);
+        box-shadow: 0 0 8px var(--rf-orange-glow);
+    }
+
+.rf-select-arrow {
+    color: var(--rf-orange-primary);
+    font-size: 0.7rem;
+    transition: transform 0.2s ease;
+}
+
+    .rf-select-arrow.open {
+        transform: rotate(180deg);
+    }
+
+.rf-custom-select-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 100%;
+    background-color: var(--rf-bg-main);
+    border: 1px solid var(--rf-orange-primary);
+    border-radius: 4px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.95);
+    z-index: 1050;
+    max-height: 260px;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.rf-custom-select-option {
+    padding: 0.65rem 1rem;
+    color: var(--rf-text-secondary);
+    font-size: 0.88rem;
+    cursor: pointer;
+    background-color: var(--rf-bg-main);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+    .rf-custom-select-option:hover {
+        background-color: rgba(255, 140, 0, 0.18);
+        color: var(--rf-orange-primary);
+    }
+
+    .rf-custom-select-option.selected {
+        background-color: var(--rf-orange-primary);
+        color: #000000;
+        font-weight: 800;
+    }
+
+/* Fallback per tag select nativi residui */
+select.rf-form-control {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23ff8c00' d='M1.41 0L6 4.58L10.59 0L12 1.41l-6 6l-6-6z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 12px 8px;
+    padding-right: 2.5rem;
+}
 
 .rf-checkbox-wrapper {
     display: flex;
@@ -305,3 +395,14 @@ h1, h2, h3, h4, h5, h6, .rf-page-title, .brand-title {
         color: var(--rf-orange-primary);
         box-shadow: 0 0 10px var(--rf-orange-glow);
     }
+
+/* Modal fade animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

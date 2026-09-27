@@ -1,4 +1,5 @@
 ﻿@page "/species"
+@using RealmForge.Client.Components
 @using RealmForge.Client.Localization
 @using RealmForge.Client.Services
 @using RealmForge.Domain.DTOs
@@ -40,22 +41,30 @@
             <label class="rf-form-label small text-uppercase" style="letter-spacing: 0.5px;">
                 @UiText.LabelRuleset(LanguageState.CurrentLanguage)
             </label>
-            <select class="rf-form-control" value="@selectedRulesetFilterString" @onchange="OnRulesetFilterChanged">
-                <option value="">@UiText.FilterRulesetAll(LanguageState.CurrentLanguage)</option>
-                <option value="@((int)RulesetVersion.Dnd5e_2024)">@UiText.FormatRuleset(RulesetVersion.Dnd5e_2024, LanguageState.CurrentLanguage)</option>
-                <option value="@((int)RulesetVersion.Dnd5e_2014)">@UiText.FormatRuleset(RulesetVersion.Dnd5e_2014, LanguageState.CurrentLanguage)</option>
-            </select>
+            <RfSelect TValue="string"
+                      @bind-Value="SelectedRulesetFilterString"
+                      OnChange="LoadData"
+                      Options="@(new List<RfSelect<string>.OptionItem>
+                      {
+                          new("", UiText.FilterRulesetAll(LanguageState.CurrentLanguage)),
+                          new(((int)RulesetVersion.Dnd5e_2024).ToString(), UiText.FormatRuleset(RulesetVersion.Dnd5e_2024, LanguageState.CurrentLanguage)),
+                          new(((int)RulesetVersion.Dnd5e_2014).ToString(), UiText.FormatRuleset(RulesetVersion.Dnd5e_2014, LanguageState.CurrentLanguage))
+                      })" />
         </div>
 
         <div class="col-md-4 col-sm-6">
             <label class="rf-form-label small text-uppercase" style="letter-spacing: 0.5px;">
                 @UiText.LabelOrigin(LanguageState.CurrentLanguage)
             </label>
-            <select class="rf-form-control" value="@selectedOriginFilterString" @onchange="OnOriginFilterChanged">
-                <option value="">@UiText.FilterOriginAll(LanguageState.CurrentLanguage)</option>
-                <option value="srd">@UiText.FilterOnlySRD(LanguageState.CurrentLanguage)</option>
-                <option value="homebrew">@UiText.FilterOnlyHomebrew(LanguageState.CurrentLanguage)</option>
-            </select>
+            <RfSelect TValue="string"
+                      @bind-Value="SelectedOriginFilterString"
+                      OnChange="LoadData"
+                      Options="@(new List<RfSelect<string>.OptionItem>
+                      {
+                          new("", UiText.FilterOriginAll(LanguageState.CurrentLanguage)),
+                          new("srd", UiText.FilterOnlySRD(LanguageState.CurrentLanguage)),
+                          new("homebrew", UiText.FilterOnlyHomebrew(LanguageState.CurrentLanguage))
+                      })" />
         </div>
     </div>
 
@@ -259,7 +268,13 @@
                 <div class="d-flex flex-column gap-2 mb-4">
                     @foreach (var item in ActiveTraits)
                     {
-                        <div class="p-3 rounded" style="background-color: var(--rf-bg-card); border-left: 3px solid @(item.IsSubspeciesTrait ? "#ffb74d" : "var(--rf-orange-primary)");">
+                        var isHighlighted = !string.IsNullOrWhiteSpace(DeepLinkTraitName) &&
+                                            item.Trait.Name.Contains(DeepLinkTraitName, StringComparison.OrdinalIgnoreCase);
+
+                        <div class="p-3 rounded"
+                             style="background-color: var(--rf-bg-card);
+                            border-left: 3px solid @(isHighlighted ? "#4fc3f7" : (item.IsSubspeciesTrait ? "#ffb74d" : "var(--rf-orange-primary)"));
+                            @(isHighlighted ? "box-shadow: 0 0 10px rgba(79, 195, 247, 0.3);" : "")">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <div class="d-flex align-items-center gap-2">
                                     <strong class="text-light">@item.Trait.Name</strong>
@@ -267,12 +282,22 @@
                                         @(item.IsSubspeciesTrait ? (ActiveSubspecies?.Name ?? UiText.BadgeSourceSubspecies(LanguageState.CurrentLanguage)) : UiText.BadgeSourceBase(LanguageState.CurrentLanguage))
                                     </span>
                                 </div>
-                                @if (item.Trait.RequiredLevel > 1)
-                                {
-                                    <span class="badge bg-secondary small" style="font-size: 0.65rem;">
-                                        @UiText.LabelRequiredLevel(item.Trait.RequiredLevel, LanguageState.CurrentLanguage)
-                                    </span>
-                                }
+                                <div class="d-flex align-items-center gap-2">
+                                    @if (item.Trait.RequiredLevel > 1)
+                                    {
+                                        <span class="badge bg-secondary small" style="font-size: 0.65rem;">
+                                            @UiText.LabelRequiredLevel(item.Trait.RequiredLevel, LanguageState.CurrentLanguage)
+                                        </span>
+                                    }
+
+                                    @* Interactive link to Origin Feats *@
+                                    @if (IsFeatGrantingTrait(item.Trait))
+                                    {
+                                        <a href="/feats?category=1" class="btn btn-sm btn-rf-outline py-0 px-2" style="font-size: 0.7rem; border-color: var(--rf-orange-primary); color: var(--rf-orange-primary);">
+                                            @(LanguageState.CurrentLanguage == LanguageCode.It ? "Sfoglia Talenti di Origine →" : "Browse Origin Feats →")
+                                        </a>
+                                    }
+                                </div>
                             </div>
                             <p class="small mb-0" style="color: var(--rf-text-secondary); text-align: left; line-height: 1.5;">
                                 @item.Trait.Description
@@ -311,21 +336,15 @@
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
                     <label class="rf-form-label">@UiText.LabelRuleset(LanguageState.CurrentLanguage)</label>
-                    <select class="rf-form-control" @bind="newRuleset">
-                        @foreach (var ruleset in Enum.GetValues<RulesetVersion>())
-                        {
-                            <option value="@ruleset">@UiText.FormatRuleset(ruleset, LanguageState.CurrentLanguage)</option>
-                        }
-                    </select>
+                    <RfSelect TValue="RulesetVersion"
+                              @bind-Value="newRuleset"
+                              Options="@(Enum.GetValues<RulesetVersion>().Select(r => new RfSelect<RulesetVersion>.OptionItem(r, UiText.FormatRuleset(r, LanguageState.CurrentLanguage))).ToList())" />
                 </div>
                 <div class="col-md-6">
                     <label class="rf-form-label">@UiText.LabelCreatureType(LanguageState.CurrentLanguage)</label>
-                    <select class="rf-form-control" @bind="newCreatureType">
-                        @foreach (var type in Enum.GetValues<CreatureType>())
-                        {
-                            <option value="@type">@UiText.FormatCreatureType(type, LanguageState.CurrentLanguage)</option>
-                        }
-                    </select>
+                    <RfSelect TValue="CreatureType"
+                              @bind-Value="newCreatureType"
+                              Options="@(Enum.GetValues<CreatureType>().Select(t => new RfSelect<CreatureType>.OptionItem(t, UiText.FormatCreatureType(t, LanguageState.CurrentLanguage))).ToList())" />
                 </div>
             </div>
 
@@ -400,6 +419,13 @@
 }
 
 @code {
+    // Deep-linking query string parameters
+    [SupplyParameterFromQuery(Name = "speciesId")]
+    public Guid? DeepLinkSpeciesId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "highlightTrait")]
+    public string? DeepLinkTraitName { get; set; }
+
     private List<SpeciesResponseDto> speciesList = new();
     private bool isLoading = true;
     private string? errorMessage;
@@ -408,8 +434,36 @@
     private RulesetVersion? selectedRulesetFilter = null;
     private bool? selectedOriginFilter = null;
 
-    private string selectedRulesetFilterString => selectedRulesetFilter.HasValue ? ((int)selectedRulesetFilter.Value).ToString() : "";
-    private string selectedOriginFilterString => selectedOriginFilter.HasValue ? (selectedOriginFilter.Value ? "srd" : "homebrew") : "";
+    // Filter binding properties with getters and setters
+    private string SelectedRulesetFilterString
+    {
+        get => selectedRulesetFilter.HasValue ? ((int)selectedRulesetFilter.Value).ToString() : "";
+        set
+        {
+            if (int.TryParse(value, out var intVal) && Enum.IsDefined(typeof(RulesetVersion), intVal))
+            {
+                selectedRulesetFilter = (RulesetVersion)intVal;
+            }
+            else
+            {
+                selectedRulesetFilter = null;
+            }
+        }
+    }
+
+    private string SelectedOriginFilterString
+    {
+        get => selectedOriginFilter.HasValue ? (selectedOriginFilter.Value ? "srd" : "homebrew") : "";
+        set
+        {
+            selectedOriginFilter = value switch
+            {
+                "srd" => true,
+                "homebrew" => false,
+                _ => null
+            };
+        }
+    }
 
     // Consultation / Detail modal state
     private bool isDetailModalOpen = false;
@@ -433,10 +487,8 @@
             var list = new List<DisplayTraitItem>();
             if (selectedDetail == null) return list;
 
-            // Add base traits
             list.AddRange(selectedDetail.BaseTraits.Select(t => new DisplayTraitItem(t, false)));
 
-            // Add selected subspecies traits
             if (ActiveSubspecies != null)
             {
                 list.AddRange(ActiveSubspecies.Traits.Select(t => new DisplayTraitItem(t, true)));
@@ -466,6 +518,12 @@
     {
         LanguageState.OnLanguageChanged += HandleLanguageChanged;
         await LoadData();
+
+        // Handle direct deep link to a specific species and trait
+        if (DeepLinkSpeciesId.HasValue)
+        {
+            await OpenDetailModal(DeepLinkSpeciesId.Value);
+        }
     }
 
     private async void HandleLanguageChanged()
@@ -491,7 +549,7 @@
     {
         isDetailModalOpen = true;
         isDetailLoading = true;
-        selectedSubspeciesId = null; // Default to base species
+        selectedSubspeciesId = null;
         selectedDetail = await SpeciesService.GetSpeciesDetailAsync(id, LanguageState.CurrentLanguage);
         isDetailLoading = false;
     }
@@ -501,34 +559,6 @@
         isDetailModalOpen = false;
         selectedDetail = null;
         selectedSubspeciesId = null;
-    }
-
-    private async Task OnRulesetFilterChanged(ChangeEventArgs e)
-    {
-        var value = e.Value?.ToString();
-        if (int.TryParse(value, out var intVal) && Enum.IsDefined(typeof(RulesetVersion), intVal))
-        {
-            selectedRulesetFilter = (RulesetVersion)intVal;
-        }
-        else
-        {
-            selectedRulesetFilter = null;
-        }
-
-        await LoadData();
-    }
-
-    private async Task OnOriginFilterChanged(ChangeEventArgs e)
-    {
-        var value = e.Value?.ToString();
-        selectedOriginFilter = value switch
-        {
-            "srd" => true,
-            "homebrew" => false,
-            _ => null
-        };
-
-        await LoadData();
     }
 
     private void OpenCreateModal()
@@ -610,6 +640,13 @@
         {
             formValidationMessage = UiText.ErrApiSave(LanguageState.CurrentLanguage);
         }
+    }
+
+    private bool IsFeatGrantingTrait(TraitResponseDto trait)
+    {
+        return trait.Name.Contains("Versatile", StringComparison.OrdinalIgnoreCase) ||
+               trait.Description.Contains("talento delle origini", StringComparison.OrdinalIgnoreCase) ||
+               trait.Description.Contains("Origin feat", StringComparison.OrdinalIgnoreCase);
     }
 
     public void Dispose()

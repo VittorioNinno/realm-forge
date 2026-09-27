@@ -238,5 +238,47 @@ namespace RealmForge.Client.Localization
 
 		public static string BtnClose(LanguageCode lang) =>
 			lang == LanguageCode.It ? "CHIUDI" : "CLOSE";
+
+		//	Feats view localizations
+		public static string FeatsTitle(LanguageCode lang) =>
+			lang == LanguageCode.It ? "Talenti" : "Feats";
+
+		public static string FeatsSubtitle(LanguageCode lang) =>
+			lang == LanguageCode.It
+				? "Consulta i talenti di origine, le doti eroiche e le tecniche di combattimento del multiverso."
+				: "Browse origin feats, heroic capabilities, and combat styles across the multiverse.";
+
+		public static string PlaceholderSearchFeats(LanguageCode lang) =>
+			lang == LanguageCode.It
+				? "Cerca talento per nome o descrizione..."
+				: "Search feat by name or description...";
+
+		public static string FilterCategoryAll(LanguageCode lang) =>
+			lang == LanguageCode.It ? "Tutti" : "All";
+
+		public static string FormatFeatCategory(FeatCategory cat, LanguageCode lang) => (cat, lang) switch
+		{
+			(FeatCategory.Origin, LanguageCode.It) => "Origine",
+			(FeatCategory.Origin, _) => "Origin",
+			(FeatCategory.General, LanguageCode.It) => "Generale",
+			(FeatCategory.General, _) => "General",
+			(FeatCategory.FightingStyle, LanguageCode.It) => "Stile di Combattimento",
+			(FeatCategory.FightingStyle, _) => "Fighting Style",
+			(FeatCategory.EpicBoon, LanguageCode.It) => "Dono Epico",
+			(FeatCategory.EpicBoon, _) => "Epic Boon",
+			_ => cat.ToString()
+		};
+
+		public static string LabelPrerequisite(LanguageCode lang) =>
+			lang == LanguageCode.It ? "Prerequisito:" : "Prerequisite:";
+
+		public static string BtnInspect(LanguageCode lang) =>
+			lang == LanguageCode.It ? "Esamina →" : "Inspect →";
+
+		public static string LoadingFeats(LanguageCode lang) =>
+			lang == LanguageCode.It ? "Caricamento talenti in corso..." : "Loading feats archive...";
+
+		public static string NoFeatsFound(LanguageCode lang) =>
+			lang == LanguageCode.It ? "Nessun talento trovato per i criteri selezionati." : "No feats found matching the criteria.";
 	}
 }
