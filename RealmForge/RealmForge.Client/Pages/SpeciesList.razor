@@ -133,21 +133,25 @@
 
                         @* CARD FOOTER: Trait / Subspecies counts & Action Button *@
                         <div class="pt-3 d-flex justify-content-between align-items-center" style="border-top: 1px solid var(--rf-border-subtle);">
-                            <div class="d-flex gap-2">
+                            <div class="d-flex gap-2 flex-wrap">
                                 @if (sp.TraitCount > 0)
                                 {
-                                    <span class="badge bg-dark border border-secondary text-light small">
+                                    <span class="badge bg-dark border border-secondary text-light small py-1 px-2">
                                         @UiText.BadgeTraitsCount(sp.TraitCount, LanguageState.CurrentLanguage)
                                     </span>
                                 }
                                 @if (sp.SubspeciesCount > 0)
                                 {
-                                    <span class="badge bg-dark border border-warning text-warning small">
+                                    <span class="badge bg-dark border border-warning text-warning small py-1 px-2">
                                         @UiText.BadgeSubspeciesCount(sp.SubspeciesCount, LanguageState.CurrentLanguage)
                                     </span>
                                 }
                             </div>
-                            <button class="btn btn-sm btn-rf-outline" @onclick:stopPropagation="true" @onclick="() => OpenDetailModal(sp.Id)">
+
+                            <button class="btn btn-sm btn-rf-outline text-uppercase flex-shrink-0"
+                                    style="letter-spacing: 1px;"
+                                    @onclick:stopPropagation="true"
+                                    @onclick="() => OpenDetailModal(sp.Id)">
                                 @UiText.BtnViewDetails(LanguageState.CurrentLanguage)
                             </button>
                         </div>
@@ -307,8 +311,25 @@
                 </div>
 
                 @* MODAL ACTIONS *@
-                <div class="d-flex justify-content-end pt-3" style="border-top: 1px solid var(--rf-border-light);">
-                    <button class="btn btn-rf-outline" @onclick="CloseDetailModal">
+                <div class="d-flex justify-content-between align-items-center pt-3 mt-4" style="border-top: 1px solid var(--rf-border-light);">
+
+                    @* Azioni CRUD (Sinistra) *@
+                    <div class="d-flex gap-3">
+                        <button class="btn btn-sm btn-rf-outline d-flex align-items-center gap-2 text-uppercase"
+                                style="letter-spacing: 1px;"
+                                @onclick="async () => { var id = selectedDetail.Id; CloseDetailModal(); await OpenEditModal(id); }">
+                            <span>✎</span> @UiText.Edit(LanguageState.CurrentLanguage)
+                        </button>
+                        <button class="btn btn-sm btn-rf-outline d-flex align-items-center justify-content-center px-3"
+                                style="border-color: #dc3545; color: #dc3545;"
+                                title="@UiText.Delete(LanguageState.CurrentLanguage)"
+                                @onclick="() => { var id = selectedDetail.Id; var name = selectedDetail.Name; CloseDetailModal(); OpenDeleteModal(id, name); }">
+                            <span>🗑</span>
+                        </button>
+                    </div>
+
+                    @* Chiusura Modale (Destra) *@
+                    <button class="btn btn-rf-outline text-uppercase" style="letter-spacing: 1px;" @onclick="CloseDetailModal">
                         @UiText.BtnClose(LanguageState.CurrentLanguage)
                     </button>
                 </div>
@@ -317,101 +338,131 @@
     </div>
 }
 
-@* --- CREATE SPECIES MODAL --- *@
+@* --- CREATE / EDIT SPECIES MODAL --- *@
 @if (isModalOpen)
 {
     <div class="rf-modal-backdrop" @onclick="CloseCreateModal">
         <div class="rf-modal-dialog" @onclick:stopPropagation="true">
             <h2 class="h4 mb-3 pb-2" style="border-bottom: 1px solid var(--rf-border-light); font-family: var(--rf-font-display);">
-                @UiText.ModalTitleAddSpecies(LanguageState.CurrentLanguage)
+                @(isEditMode ? UiText.Edit(LanguageState.CurrentLanguage) : UiText.ModalTitleAddSpecies(LanguageState.CurrentLanguage))
             </h2>
 
-            @if (!string.IsNullOrEmpty(formValidationMessage))
+            @if (isModalLoading)
             {
-                <div class="alert alert-warning bg-dark border-warning text-warning p-2 small mb-3">
-                    @formValidationMessage
+                <div class="text-center py-4">
+                    <div class="spinner-border text-warning" role="status"></div>
                 </div>
             }
+            else
+            {
+                @if (!string.IsNullOrEmpty(formValidationMessage))
+                {
+                    <div class="alert alert-warning bg-dark border-warning text-warning p-2 small mb-3">
+                        @formValidationMessage
+                    </div>
+                }
 
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label class="rf-form-label">@UiText.LabelRuleset(LanguageState.CurrentLanguage)</label>
-                    <RfSelect TValue="RulesetVersion"
-                              @bind-Value="newRuleset"
-                              Options="@(Enum.GetValues<RulesetVersion>().Select(r => new RfSelect<RulesetVersion>.OptionItem(r, UiText.FormatRuleset(r, LanguageState.CurrentLanguage))).ToList())" />
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="rf-form-label">@UiText.LabelRuleset(LanguageState.CurrentLanguage)</label>
+                        <RfSelect TValue="RulesetVersion"
+                                  @bind-Value="newRuleset"
+                                  Options="@(Enum.GetValues<RulesetVersion>().Select(r => new RfSelect<RulesetVersion>.OptionItem(r, UiText.FormatRuleset(r, LanguageState.CurrentLanguage))).ToList())" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="rf-form-label">@UiText.LabelCreatureType(LanguageState.CurrentLanguage)</label>
+                        <RfSelect TValue="CreatureType"
+                                  @bind-Value="newCreatureType"
+                                  Options="@(Enum.GetValues<CreatureType>().Select(t => new RfSelect<CreatureType>.OptionItem(t, UiText.FormatCreatureType(t, LanguageState.CurrentLanguage))).ToList())" />
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <label class="rf-form-label">@UiText.LabelCreatureType(LanguageState.CurrentLanguage)</label>
-                    <RfSelect TValue="CreatureType"
-                              @bind-Value="newCreatureType"
-                              Options="@(Enum.GetValues<CreatureType>().Select(t => new RfSelect<CreatureType>.OptionItem(t, UiText.FormatCreatureType(t, LanguageState.CurrentLanguage))).ToList())" />
-                </div>
-            </div>
 
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label class="rf-form-label">
-                        @UiText.LabelSpeed(LanguageState.CurrentLanguage)
-                        <span class="text-secondary ms-1">(@UiText.FormatSpeed(newSpeed, LanguageState.CurrentLanguage))</span>
-                    </label>
-                    <input type="number" class="rf-form-control" @bind="newSpeed" min="5" step="5" />
-                </div>
-                <div class="col-md-6 d-flex align-items-end">
-                    <label class="rf-checkbox-wrapper mb-2">
-                        <input type="checkbox" class="rf-checkbox" @bind="newIsSRD" />
-                        <span class="small fw-bold" style="color: var(--rf-text-secondary);">
-                            @UiText.LabelIsSRD(LanguageState.CurrentLanguage)
-                        </span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="mb-4">
-                <label class="rf-form-label">@UiText.LabelSizes(LanguageState.CurrentLanguage)</label>
-                <div class="d-flex flex-wrap gap-3 p-2 rounded" style="background: var(--rf-bg-card); border: 1px solid var(--rf-border-light);">
-                    @foreach (var size in Enum.GetValues<CreatureSize>())
-                    {
-                        <label class="rf-checkbox-wrapper mb-0">
-                            <input type="checkbox"
-                                   class="rf-checkbox"
-                                   checked="@selectedSizes.Contains(size)"
-                                   @onchange="(e) => ToggleSize(size, e.Value)" />
-                            <span class="small" style="color: #ffffff;">@UiText.FormatSizeSingle(size, LanguageState.CurrentLanguage)</span>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="rf-form-label">
+                            @UiText.LabelSpeed(LanguageState.CurrentLanguage)
+                            <span class="text-secondary ms-1">(@UiText.FormatSpeed(newSpeed, LanguageState.CurrentLanguage))</span>
                         </label>
-                    }
+                        <input type="number" class="rf-form-control" @bind="newSpeed" min="5" step="5" />
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <label class="rf-checkbox-wrapper mb-2">
+                            <input type="checkbox" class="rf-checkbox" @bind="newIsSRD" />
+                            <span class="small fw-bold" style="color: var(--rf-text-secondary);">
+                                @UiText.LabelIsSRD(LanguageState.CurrentLanguage)
+                            </span>
+                        </label>
+                    </div>
                 </div>
+
+                <div class="mb-4">
+                    <label class="rf-form-label">@UiText.LabelSizes(LanguageState.CurrentLanguage)</label>
+                    <div class="d-flex flex-wrap gap-3 p-2 rounded" style="background: var(--rf-bg-card); border: 1px solid var(--rf-border-light);">
+                        @foreach (var size in Enum.GetValues<CreatureSize>())
+                        {
+                            <label class="rf-checkbox-wrapper mb-0">
+                                <input type="checkbox"
+                                       class="rf-checkbox"
+                                       checked="@selectedSizes.Contains(size)"
+                                       @onchange="(e) => ToggleSize(size, e.Value)" />
+                                <span class="small" style="color: #ffffff;">@UiText.FormatSizeSingle(size, LanguageState.CurrentLanguage)</span>
+                            </label>
+                        }
+                    </div>
+                </div>
+
+                <div class="p-3 mb-3 rounded" style="background-color: var(--rf-bg-card); border-left: 3px solid var(--rf-orange-primary);">
+                    <div class="fw-bold mb-2 small" style="color: var(--rf-orange-primary);">@UiText.TabItalian(LanguageState.CurrentLanguage)</div>
+                    <div class="mb-2">
+                        <label class="rf-form-label">@UiText.LabelName(LanguageState.CurrentLanguage)</label>
+                        <input type="text" class="rf-form-control" placeholder="@UiText.PlaceholderNameIt(LanguageState.CurrentLanguage)" @bind="nameIt" />
+                    </div>
+                    <div>
+                        <label class="rf-form-label">@UiText.LabelDescription(LanguageState.CurrentLanguage)</label>
+                        <textarea class="rf-form-control" rows="2" @bind="descIt"></textarea>
+                    </div>
+                </div>
+
+                <div class="p-3 mb-4 rounded" style="background-color: var(--rf-bg-card); border-left: 3px solid #666;">
+                    <div class="fw-bold mb-2 small text-secondary">@UiText.TabEnglish(LanguageState.CurrentLanguage)</div>
+                    <div class="mb-2">
+                        <label class="rf-form-label" style="color: var(--rf-text-secondary);">@UiText.LabelName(LanguageState.CurrentLanguage)</label>
+                        <input type="text" class="rf-form-control" placeholder="@UiText.PlaceholderNameEn(LanguageState.CurrentLanguage)" @bind="nameEn" />
+                    </div>
+                    <div>
+                        <label class="rf-form-label" style="color: var(--rf-text-secondary);">@UiText.LabelDescription(LanguageState.CurrentLanguage)</label>
+                        <textarea class="rf-form-control" rows="2" @bind="descEn"></textarea>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 pt-2" style="border-top: 1px solid var(--rf-border-light);">
+                    <button class="btn btn-rf-outline" @onclick="CloseCreateModal">
+                        @UiText.BtnCancel(LanguageState.CurrentLanguage)
+                    </button>
+                    <button class="btn btn-rf-orange" @onclick="HandleSaveSpecies" disabled="@isSaving">
+                        @(isSaving ? "..." : UiText.BtnSave(LanguageState.CurrentLanguage))
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@* --- DELETE CONFIRMATION MODAL --- *@
+@if (isDeleteModalOpen)
+{
+    <div class="rf-modal-backdrop" @onclick="CloseDeleteModal">
+        <div class="rf-modal-dialog" @onclick:stopPropagation="true" style="max-width: 450px; text-align: center;">
+            <h2 class="h4 mb-3" style="color: var(--rf-orange-primary);">@UiText.ConfirmDeletion(LanguageState.CurrentLanguage)</h2>
+
+            <div class="p-3 mb-4 rounded" style="background-color: var(--rf-bg-main); border: 1px solid var(--rf-border-subtle); color: var(--rf-text-secondary); line-height: 1.5;">
+                @UiText.DeleteSpeciesWarning(LanguageState.CurrentLanguage, speciesToDeleteName)
             </div>
 
-            <div class="p-3 mb-3 rounded" style="background-color: var(--rf-bg-card); border-left: 3px solid var(--rf-orange-primary);">
-                <div class="fw-bold mb-2 small" style="color: var(--rf-orange-primary);">@UiText.TabItalian(LanguageState.CurrentLanguage)</div>
-                <div class="mb-2">
-                    <label class="rf-form-label">@UiText.LabelName(LanguageState.CurrentLanguage)</label>
-                    <input type="text" class="rf-form-control" placeholder="@UiText.PlaceholderNameIt(LanguageState.CurrentLanguage)" @bind="nameIt" />
-                </div>
-                <div>
-                    <label class="rf-form-label">@UiText.LabelDescription(LanguageState.CurrentLanguage)</label>
-                    <textarea class="rf-form-control" rows="2" @bind="descIt"></textarea>
-                </div>
-            </div>
-
-            <div class="p-3 mb-4 rounded" style="background-color: var(--rf-bg-card); border-left: 3px solid #666;">
-                <div class="fw-bold mb-2 small text-secondary">@UiText.TabEnglish(LanguageState.CurrentLanguage)</div>
-                <div class="mb-2">
-                    <label class="rf-form-label" style="color: var(--rf-text-secondary);">@UiText.LabelName(LanguageState.CurrentLanguage)</label>
-                    <input type="text" class="rf-form-control" placeholder="@UiText.PlaceholderNameEn(LanguageState.CurrentLanguage)" @bind="nameEn" />
-                </div>
-                <div>
-                    <label class="rf-form-label" style="color: var(--rf-text-secondary);">@UiText.LabelDescription(LanguageState.CurrentLanguage)</label>
-                    <textarea class="rf-form-control" rows="2" @bind="descEn"></textarea>
-                </div>
-            </div>
-
-            <div class="d-flex justify-content-end gap-2 pt-2" style="border-top: 1px solid var(--rf-border-light);">
-                <button class="btn btn-rf-outline" @onclick="CloseCreateModal">
-                    @UiText.BtnCancel(LanguageState.CurrentLanguage)
-                </button>
-                <button class="btn btn-rf-orange" @onclick="HandleSaveSpecies" disabled="@isSaving">
-                    @(isSaving ? "..." : UiText.BtnSave(LanguageState.CurrentLanguage))
+            <div class="d-flex justify-content-center gap-3">
+                <button class="btn btn-rf-outline" @onclick="CloseDeleteModal">@UiText.BtnCancel(LanguageState.CurrentLanguage)</button>
+                <button class="btn btn-rf-orange" style="background-color: #dc3545; border-color: #dc3545;" @onclick="HandleDeleteSpecies">
+                    @UiText.Delete(LanguageState.CurrentLanguage)
                 </button>
             </div>
         </div>
@@ -498,9 +549,12 @@
         }
     }
 
-    // Create modal state
+    // Form Modal state (Create / Edit)
     private bool isModalOpen = false;
+    private bool isModalLoading = false;
     private bool isSaving = false;
+    private bool isEditMode = false;
+    private Guid editingId;
     private string? formValidationMessage;
 
     // Form fields
@@ -514,12 +568,16 @@
     private string nameEn = "";
     private string descEn = "";
 
+    // Delete Modal state
+    private bool isDeleteModalOpen = false;
+    private Guid speciesToDeleteId;
+    private string speciesToDeleteName = string.Empty;
+
     protected override async Task OnInitializedAsync()
     {
         LanguageState.OnLanguageChanged += HandleLanguageChanged;
         await LoadData();
 
-        // Handle direct deep link to a specific species and trait
         if (DeepLinkSpeciesId.HasValue)
         {
             await OpenDetailModal(DeepLinkSpeciesId.Value);
@@ -561,8 +619,10 @@
         selectedSubspeciesId = null;
     }
 
+    // CREATE Action
     private void OpenCreateModal()
     {
+        isEditMode = false;
         formValidationMessage = null;
         newSpeed = 30;
         newRuleset = RulesetVersion.Dnd5e_2024;
@@ -576,6 +636,50 @@
         isModalOpen = true;
     }
 
+    // EDIT Action
+    private async Task OpenEditModal(Guid id)
+    {
+        isEditMode = true;
+        editingId = id;
+        formValidationMessage = null;
+        isModalOpen = true;
+        isModalLoading = true;
+
+        try
+        {
+            // Fetching both languages to populate the full Edit Form
+            var detailItTask = SpeciesService.GetSpeciesDetailAsync(id, LanguageCode.It);
+            var detailEnTask = SpeciesService.GetSpeciesDetailAsync(id, LanguageCode.En);
+
+            await Task.WhenAll(detailItTask, detailEnTask);
+
+            var detailIt = detailItTask.Result;
+            var detailEn = detailEnTask.Result;
+
+            if (detailIt != null && detailEn != null)
+            {
+                newSpeed = detailIt.BaseSpeedInFeet;
+                newRuleset = detailIt.Ruleset;
+                newCreatureType = detailIt.CreatureType;
+                selectedSizes = new HashSet<CreatureSize>(detailIt.AllowedSizes);
+                newIsSRD = detailIt.IsOfficialSRD;
+
+                nameIt = detailIt.Name;
+                descIt = detailIt.Description;
+                nameEn = detailEn.Name;
+                descEn = detailEn.Description;
+            }
+        }
+        catch (Exception ex)
+        {
+            formValidationMessage = $"Error loading data: {ex.Message}";
+        }
+        finally
+        {
+            isModalLoading = false;
+        }
+    }
+
     private void CloseCreateModal()
     {
         isModalOpen = false;
@@ -585,14 +689,8 @@
     {
         if (isChecked is bool checkedValue)
         {
-            if (checkedValue)
-            {
-                selectedSizes.Add(size);
-            }
-            else
-            {
-                selectedSizes.Remove(size);
-            }
+            if (checkedValue) selectedSizes.Add(size);
+            else selectedSizes.Remove(size);
         }
     }
 
@@ -615,20 +713,41 @@
         isSaving = true;
         formValidationMessage = null;
 
-        var dto = new CreateSpeciesDto(
-            newSpeed,
-            selectedSizes.ToList(),
-            newCreatureType,
-            newRuleset,
-            newIsSRD,
-            new List<SpeciesTranslationDto>
-            {
-                new SpeciesTranslationDto(LanguageCode.It, nameIt.Trim(), descIt?.Trim() ?? string.Empty),
-                new SpeciesTranslationDto(LanguageCode.En, nameEn.Trim(), descEn?.Trim() ?? string.Empty)
-            }
-        );
+        var translations = new List<SpeciesTranslationDto>
+        {
+            new SpeciesTranslationDto(LanguageCode.It, nameIt.Trim(), descIt?.Trim() ?? string.Empty),
+            new SpeciesTranslationDto(LanguageCode.En, nameEn.Trim(), descEn?.Trim() ?? string.Empty)
+        };
 
-        var success = await SpeciesService.CreateSpeciesAsync(dto);
+        bool success;
+
+        if (isEditMode)
+        {
+            // Assuming Update DTO uses the same structure. Adjust if UpdateSpeciesDto differs slightly.
+            var updateDto = new UpdateSpeciesDto(
+                editingId,
+                newSpeed,
+                selectedSizes.ToList(),
+                newCreatureType,
+                newRuleset,
+                newIsSRD,
+                translations
+            );
+            success = await SpeciesService.UpdateSpeciesAsync(editingId, updateDto);
+        }
+        else
+        {
+            var createDto = new CreateSpeciesDto(
+                newSpeed,
+                selectedSizes.ToList(),
+                newCreatureType,
+                newRuleset,
+                newIsSRD,
+                translations
+            );
+            success = await SpeciesService.CreateSpeciesAsync(createDto);
+        }
+
         isSaving = false;
 
         if (success)
@@ -639,6 +758,36 @@
         else
         {
             formValidationMessage = UiText.ErrApiSave(LanguageState.CurrentLanguage);
+        }
+    }
+
+    // DELETE Action
+    private void OpenDeleteModal(Guid id, string name)
+    {
+        speciesToDeleteId = id;
+        speciesToDeleteName = name;
+        isDeleteModalOpen = true;
+    }
+
+    private void CloseDeleteModal()
+    {
+        isDeleteModalOpen = false;
+    }
+
+    private async Task HandleDeleteSpecies()
+    {
+        var success = await SpeciesService.DeleteSpeciesAsync(speciesToDeleteId);
+
+        if (success)
+        {
+            isDeleteModalOpen = false;
+            await LoadData();
+        }
+        else
+        {
+            errorMessage = LanguageState.CurrentLanguage == LanguageCode.It
+                ? "Errore durante l'eliminazione della specie."
+                : "Failed to delete species.";
         }
     }
 

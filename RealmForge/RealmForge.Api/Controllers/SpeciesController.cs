@@ -29,6 +29,7 @@ namespace RealmForge.Api.Controllers
 				.Include(s => s.Translations)
 				.Include(s => s.Traits)
 				.Include(s => s.Subspecies)
+				.AsSplitQuery()
 				.AsNoTracking()
 				.AsQueryable();
 
@@ -46,7 +47,6 @@ namespace RealmForge.Api.Controllers
 
 			var result = speciesList.Select(s =>
 			{
-				//	Find requested translation or fall back to the first available
 				var translation = s.Translations.FirstOrDefault(t => t.Language == lang)
 								  ?? s.Translations.FirstOrDefault();
 
@@ -83,6 +83,7 @@ namespace RealmForge.Api.Controllers
 				.Include(s => s.Subspecies)
 					.ThenInclude(sub => sub.Traits)
 						.ThenInclude(t => t.Translations)
+				.AsSplitQuery()
 				.AsNoTracking()
 				.FirstOrDefaultAsync(s => s.Id == id);
 
@@ -94,7 +95,6 @@ namespace RealmForge.Api.Controllers
 			var translation = species.Translations.FirstOrDefault(t => t.Language == lang)
 							  ?? species.Translations.FirstOrDefault();
 
-			//	Localize species base traits
 			var baseTraits = species.Traits
 				.OrderBy(t => t.RequiredLevel)
 				.Select(t =>
@@ -113,7 +113,6 @@ namespace RealmForge.Api.Controllers
 				})
 				.ToList();
 
-			//	Localize subspecies and their respective exclusive traits
 			var subspeciesList = species.Subspecies.Select(sub =>
 			{
 				var subTranslation = sub.Translations.FirstOrDefault(tr => tr.Language == lang)
@@ -251,6 +250,87 @@ namespace RealmForge.Api.Controllers
 			);
 
 			return CreatedAtAction(nameof(GetById), new { id = species.Id }, response);
+		}
+
+		//	PUT: api/species/{id}
+		[HttpPut("{id:guid}")]
+		public async Task<IActionResult> UpdateSpecies(Guid id, [FromBody] UpdateSpeciesDto dto)
+		{
+			if (id != dto.Id)
+			{
+				return BadRequest("ID mismatch between route and payload.");
+			}
+
+			var species = await _context.Species
+				.Include(s => s.Translations)
+				.FirstOrDefaultAsync(s => s.Id == id);
+
+			if (species == null)
+			{
+				return NotFound();
+			}
+
+			//	Update core mechanical data
+			species.BaseSpeedInFeet = dto.BaseSpeedInFeet;
+			species.AllowedSizes = dto.AllowedSizes;
+			species.CreatureType = dto.CreatureType;
+			species.Ruleset = dto.Ruleset;
+			species.IsOfficialSRD = dto.IsOfficialSRD;
+
+			//	Safely update translations (Upsert approach)
+			foreach (var tDto in dto.Translations)
+			{
+				var existingTranslation = species.Translations.FirstOrDefault(t => t.Language == tDto.Language);
+
+				if (existingTranslation != null)
+				{
+					//	Update existing
+					existingTranslation.Name = tDto.Name;
+					existingTranslation.Description = tDto.Description;
+				}
+				else
+				{
+					//	Add new
+					species.Translations.Add(new SpeciesTranslation
+					{
+						Language = tDto.Language,
+						Name = tDto.Name,
+						Description = tDto.Description
+					});
+				}
+			}
+
+			//	Remove translations that are no longer present in the payload
+			var dtoLanguages = dto.Translations.Select(t => t.Language).ToList();
+			var translationsToRemove = species.Translations
+				.Where(t => !dtoLanguages.Contains(t.Language))
+				.ToList();
+
+			if (translationsToRemove.Any())
+			{
+				_context.SpeciesTranslations.RemoveRange(translationsToRemove);
+			}
+
+			await _context.SaveChangesAsync();
+
+			return NoContent();	//	204 Success
+		}
+
+		//	DELETE: api/species/{id}
+		[HttpDelete("{id:guid}")]
+		public async Task<IActionResult> DeleteSpecies(Guid id)
+		{
+			var species = await _context.Species.FindAsync(id);
+
+			if (species == null)
+			{
+				return NotFound();
+			}
+
+			_context.Species.Remove(species);
+			await _context.SaveChangesAsync();
+
+			return NoContent();
 		}
 	}
 }

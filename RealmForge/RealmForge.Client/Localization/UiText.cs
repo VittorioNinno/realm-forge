@@ -49,6 +49,21 @@ namespace RealmForge.Client.Localization
 		public static string VersionNotice(LanguageCode lang) =>
 			lang == LanguageCode.It ? "RealmForge TTRPG Suite v0.1" : "RealmForge TTRPG Suite v0.1";
 
+		public static string Actions(LanguageCode lang) => lang == LanguageCode.It ? "Azioni" : "Actions";
+
+		public static string Edit(LanguageCode lang) => lang == LanguageCode.It ? "Modifica" : "Edit";
+
+		public static string Delete(LanguageCode lang) => lang == LanguageCode.It ? "Elimina" : "Delete";
+
+		public static string ConfirmDeletion(LanguageCode lang) => lang == LanguageCode.It ? "Conferma Eliminazione" : "Confirm Deletion";
+
+		public static string DeleteSpeciesWarning(LanguageCode lang, string speciesName) =>
+			lang == LanguageCode.It
+				? $"Sei sicuro di voler eliminare la specie '{speciesName}'? L'azione è irreversibile."
+				: $"Are you sure you want to delete the species '{speciesName}'? This action cannot be undone.";
+
+		public static string Cancel(LanguageCode lang) => lang == LanguageCode.It ? "Annulla" : "Cancel";
+
 		//	404 Not Found page
 		public static string NotFoundTitle(LanguageCode lang) =>
 			lang == LanguageCode.It ? "ROTTA SMARRITA" : "ROUTE LOST";

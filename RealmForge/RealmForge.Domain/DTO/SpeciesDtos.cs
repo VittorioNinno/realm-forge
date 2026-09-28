@@ -98,6 +98,19 @@ namespace RealmForge.Domain.DTOs
 	);
 
 	///	<summary>
+	///	Payload DTO for updating an existing species.
+	///	</summary>
+	public record UpdateSpeciesDto(
+		Guid Id,
+		int BaseSpeedInFeet,
+		List<CreatureSize> AllowedSizes,
+		CreatureType CreatureType,
+		RulesetVersion Ruleset,
+		bool IsOfficialSRD,
+		List<SpeciesTranslationDto> Translations
+	);
+
+	///	<summary>
 	///	Localized translation entry for species creation and editing.
 	///	</summary>
 	public record SpeciesTranslationDto(

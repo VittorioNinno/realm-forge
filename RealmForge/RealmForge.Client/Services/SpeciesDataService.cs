@@ -70,5 +70,33 @@ namespace RealmForge.Client.Services
 				return false;
 			}
 		}
+
+		public async Task<bool> UpdateSpeciesAsync(Guid id, UpdateSpeciesDto dto)
+		{
+			try
+			{
+				var response = await _http.PutAsJsonAsync($"api/species/{id}", dto);
+				return response.IsSuccessStatusCode;
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Failed to update species with ID {SpeciesId}", id);
+				return false;
+			}
+		}
+
+		public async Task<bool> DeleteSpeciesAsync(Guid id)
+		{
+			try
+			{
+				var response = await _http.DeleteAsync($"api/species/{id}");
+				return response.IsSuccessStatusCode;
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Failed to delete species with ID {SpeciesId}", id);
+				return false;
+			}
+		}
 	}
 }
