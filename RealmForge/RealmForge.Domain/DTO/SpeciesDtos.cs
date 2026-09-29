@@ -15,19 +15,6 @@ namespace RealmForge.Domain.DTOs
 	);
 
 	///	<summary>
-	///	Localized subspecies or lineage response DTO, including exclusive traits.
-	///	</summary>
-	public record SubspeciesResponseDto(
-		Guid Id,
-		string Name,
-		string Description,
-		int? BaseSpeedOverrideInFeet,
-		RulesetVersion Ruleset,
-		bool IsOfficialSRD,
-		List<TraitResponseDto> Traits
-	);
-
-	///	<summary>
 	///	Lightweight species response DTO for archive and grid listings.
 	///	Default values for counts guarantee backward compatibility with existing constructors.
 	///	</summary>
@@ -73,17 +60,6 @@ namespace RealmForge.Domain.DTOs
 	);
 
 	///	<summary>
-	///	Payload DTO for creating a subspecies along with its localized entries and exclusive traits.
-	///	</summary>
-	public record CreateSubspeciesDto(
-		int? BaseSpeedOverrideInFeet,
-		RulesetVersion Ruleset,
-		bool IsOfficialSRD,
-		List<SubspeciesTranslationDto> Translations,
-		List<CreateTraitDto>? Traits = null
-	);
-
-	///	<summary>
 	///	Payload DTO for creating a new species along with its localized entries, base traits, and subspecies.
 	///	</summary>
 	public record CreateSpeciesDto(
@@ -114,15 +90,6 @@ namespace RealmForge.Domain.DTOs
 	///	Localized translation entry for species creation and editing.
 	///	</summary>
 	public record SpeciesTranslationDto(
-		LanguageCode Language,
-		string Name,
-		string Description
-	);
-
-	///	<summary>
-	///	Localized translation entry for subspecies creation and seeding.
-	///	</summary>
-	public record SubspeciesTranslationDto(
 		LanguageCode Language,
 		string Name,
 		string Description

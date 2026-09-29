@@ -207,16 +207,16 @@
 
             <div class="d-flex justify-content-between align-items-center pt-3 mt-4" style="border-top: 1px solid var(--rf-border-light);">
                 <div class="d-flex gap-3">
-                    <button class="btn btn-sm btn-rf-outline d-flex align-items-center gap-2 text-uppercase"
+                    <button class="btn btn-sm btn-rf-outline text-uppercase"
                             style="letter-spacing: 1px;"
                             @onclick="async () => { var id = SelectedFeat.Id; CloseDetail(); await OpenEditModalAsync(id); }">
-                        <span>✎</span> @UiText.Edit(LanguageState.CurrentLanguage)
+                        @UiText.Edit(LanguageState.CurrentLanguage)
                     </button>
-                    <button class="btn btn-sm btn-rf-outline d-flex align-items-center justify-content-center px-3"
+                    <button class="btn btn-sm btn-rf-outline text-uppercase px-3"
                             style="border-color: #dc3545; color: #dc3545;"
                             title="@UiText.Delete(LanguageState.CurrentLanguage)"
                             @onclick="() => { var id = SelectedFeat.Id; var name = SelectedFeat.Name; CloseDetail(); OpenDeleteModal(id, name); }">
-                        <span>🗑</span>
+                        @UiText.Delete(LanguageState.CurrentLanguage)
                     </button>
                 </div>
                 <button class="btn btn-rf-outline text-uppercase" style="letter-spacing: 1px;" @onclick="CloseDetail">

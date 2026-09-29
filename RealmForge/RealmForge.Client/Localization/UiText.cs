@@ -231,6 +231,35 @@ namespace RealmForge.Client.Localization
 		}
 		#endregion
 
+		#region Subspecies Compendium
+		public static string SubspeciesTitle(LanguageCode lang) => lang == LanguageCode.It ? "Sottospecie e Lignaggi" : "Subspecies & Lineages";
+
+		public static string SubspeciesSubtitle(LanguageCode lang) => lang == LanguageCode.It
+			? "Gestisci le varianti regionali e i lignaggi derivati dalla specie madre."
+			: "Manage regional variants and lineages derived from the parent species.";
+
+		public static string BtnManageSubspecies(LanguageCode lang) => lang == LanguageCode.It ? "Gestisci Sottospecie" : "Manage Subspecies";
+
+		public static string BtnBackToSpecies(LanguageCode lang) => lang == LanguageCode.It ? "← TORNA ALLA SPECIE" : "← BACK TO SPECIES";
+
+		public static string NoSubspeciesFound(LanguageCode lang) => lang == LanguageCode.It
+			? "Nessuna sottospecie trovata. Forgia la prima variante!"
+			: "No subspecies found. Forge the first variant!";
+
+		public static string BtnAddSubspecies(LanguageCode lang) => lang == LanguageCode.It ? "+ NUOVA SOTTOSPECIE" : "+ NEW SUBSPECIES";
+		public static string ModalTitleAddSubspecies(LanguageCode lang) => lang == LanguageCode.It ? "FORGIA SOTTOSPECIE" : "FORGE SUBSPECIES";
+		public static string ModalTitleEditSubspecies(LanguageCode lang) => lang == LanguageCode.It ? "MODIFICA SOTTOSPECIE" : "EDIT SUBSPECIES";
+		public static string BtnSaveSubspecies(LanguageCode lang) => lang == LanguageCode.It ? "SALVA SOTTOSPECIE" : "SAVE SUBSPECIES";
+
+		public static string LabelSpeedOverride(LanguageCode lang) => lang == LanguageCode.It ? "Override Velocità (Opzionale)" : "Speed Override (Optional)";
+
+		public static string DeleteSubspeciesWarning(LanguageCode lang, string name) => lang == LanguageCode.It
+			? $"Sei sicuro di voler eliminare la sottospecie '{name}'? L'azione è irreversibile."
+			: $"Are you sure you want to delete the subspecies '{name}'? This action cannot be undone.";
+
+		public static string InheritedFromParent(LanguageCode lang) => lang == LanguageCode.It ? "Ereditato dalla Specie" : "Inherited from Species";
+		#endregion
+
 		#region Error Pages (404)
 		public static string NotFoundTitle(LanguageCode lang) =>
 			lang == LanguageCode.It ? "ROTTA SMARRITA" : "ROUTE LOST";

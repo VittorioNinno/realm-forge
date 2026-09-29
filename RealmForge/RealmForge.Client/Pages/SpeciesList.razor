@@ -7,6 +7,7 @@
 @implements IDisposable
 @inject SpeciesDataService SpeciesService
 @inject LanguageStateService LanguageState
+@inject NavigationManager NavManager
 
 <PageTitle>RealmForge - @UiText.SpeciesTitle(LanguageState.CurrentLanguage)</PageTitle>
 
@@ -196,7 +197,13 @@
                             </span>
                         </div>
                     </div>
-                    <button class="btn btn-sm btn-rf-outline" @onclick="CloseDetailModal">✕</button>
+
+                    @* Navigazione Sottospecie (Top Right) *@
+                    <button class="btn btn-sm btn-rf-outline text-uppercase mt-1"
+                            style="letter-spacing: 1px; color: var(--rf-orange-primary); border-color: var(--rf-orange-primary);"
+                            @onclick="() => NavigateToSubspecies(selectedDetail.Id)">
+                        @UiText.BtnManageSubspecies(LanguageState.CurrentLanguage)
+                    </button>
                 </div>
 
                 @* INTERACTIVE SUBSPECIES SELECTOR PILLS *@
@@ -315,21 +322,23 @@
 
                     @* Azioni CRUD (Sinistra) *@
                     <div class="d-flex gap-3">
-                        <button class="btn btn-sm btn-rf-outline d-flex align-items-center gap-2 text-uppercase"
+                        <button class="btn btn-sm btn-rf-outline text-uppercase"
                                 style="letter-spacing: 1px;"
                                 @onclick="async () => { var id = selectedDetail.Id; CloseDetailModal(); await OpenEditModal(id); }">
-                            <span>✎</span> @UiText.Edit(LanguageState.CurrentLanguage)
+                            @UiText.Edit(LanguageState.CurrentLanguage)
                         </button>
-                        <button class="btn btn-sm btn-rf-outline d-flex align-items-center justify-content-center px-3"
+                        <button class="btn btn-sm btn-rf-outline text-uppercase px-3"
                                 style="border-color: #dc3545; color: #dc3545;"
                                 title="@UiText.Delete(LanguageState.CurrentLanguage)"
                                 @onclick="() => { var id = selectedDetail.Id; var name = selectedDetail.Name; CloseDetailModal(); OpenDeleteModal(id, name); }">
-                            <span>🗑</span>
+                            @UiText.Delete(LanguageState.CurrentLanguage)
                         </button>
                     </div>
 
                     @* Chiusura Modale (Destra) *@
-                    <button class="btn btn-rf-outline text-uppercase" style="letter-spacing: 1px;" @onclick="CloseDetailModal">
+                    <button class="btn btn-rf-outline text-uppercase" 
+                            style="letter-spacing: 1px;" 
+                            @onclick="CloseDetailModal">
                         @UiText.BtnClose(LanguageState.CurrentLanguage)
                     </button>
                 </div>
@@ -796,6 +805,11 @@
         return trait.Name.Contains("Versatile", StringComparison.OrdinalIgnoreCase) ||
                trait.Description.Contains("talento delle origini", StringComparison.OrdinalIgnoreCase) ||
                trait.Description.Contains("Origin feat", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void NavigateToSubspecies(Guid speciesId)
+    {
+        NavManager.NavigateTo($"/species/{speciesId}/subspecies");
     }
 
     public void Dispose()
