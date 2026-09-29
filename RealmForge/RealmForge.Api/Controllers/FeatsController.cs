@@ -28,6 +28,7 @@ namespace RealmForge.Server.Controllers
 			var targetLang = (LanguageCode)lang;
 			var query = _context.Feats
 				.Include(f => f.Translations)
+				.AsSplitQuery()
 				.AsNoTracking();
 
 			if (category.HasValue)
@@ -58,7 +59,7 @@ namespace RealmForge.Server.Controllers
 
 				return new FeatResponseDto(
 					f.Id,
-					tr?.Name ?? "Sconosciuto",
+					tr?.Name ?? "Unknown",
 					f.Category,
 					f.Prerequisite,
 					f.Ruleset,
@@ -76,6 +77,7 @@ namespace RealmForge.Server.Controllers
 			var targetLang = (LanguageCode)lang;
 			var feat = await _context.Feats
 				.Include(f => f.Translations)
+				.AsSplitQuery()
 				.AsNoTracking()
 				.FirstOrDefaultAsync(f => f.Id == id);
 
@@ -90,7 +92,7 @@ namespace RealmForge.Server.Controllers
 
 			return Ok(new FeatDetailResponseDto(
 				feat.Id,
-				tr?.Name ?? "Sconosciuto",
+				tr?.Name ?? "Unknown",
 				feat.Category,
 				feat.Prerequisite,
 				feat.Ruleset,
@@ -100,18 +102,22 @@ namespace RealmForge.Server.Controllers
 		}
 
 		[HttpPost]
-		public async Task<IActionResult> CreateFeat([FromBody] CreateFeatDto dto)
+		public async Task<ActionResult<FeatResponseDto>> CreateFeat([FromBody] CreateFeatDto dto)
 		{
+			if (dto.Translations == null || !dto.Translations.Any())
+			{
+				return BadRequest("At least one translation must be provided.");
+			}
+
+			//	Map payload to entity, allowing Entity Framework to handle identity generation
 			var feat = new Feat
 			{
-				Id = Guid.NewGuid(),
 				Category = dto.Category,
 				Prerequisite = dto.Prerequisite,
 				Ruleset = dto.Ruleset,
 				IsOfficialSRD = dto.IsOfficialSRD,
 				Translations = dto.Translations.Select(t => new FeatTranslation
 				{
-					Id = Guid.NewGuid(),
 					Language = t.Language,
 					Name = t.Name,
 					Description = t.Description
@@ -121,7 +127,106 @@ namespace RealmForge.Server.Controllers
 			_context.Feats.Add(feat);
 			await _context.SaveChangesAsync();
 
-			return CreatedAtAction(nameof(GetFeatDetail), new { id = feat.Id }, feat.Id);
+			var firstTranslation = feat.Translations.FirstOrDefault();
+			var response = new FeatResponseDto(
+				feat.Id,
+				firstTranslation?.Name ?? "Unknown",
+				feat.Category,
+				feat.Prerequisite,
+				feat.Ruleset,
+				feat.IsOfficialSRD,
+				firstTranslation?.Description ?? string.Empty
+			);
+
+			return CreatedAtAction(nameof(GetFeatDetail), new { id = feat.Id }, response);
+		}
+
+		[HttpPut("{id:guid}")]
+		public async Task<IActionResult> UpdateFeat(Guid id, [FromBody] UpdateFeatDto dto)
+		{
+			if (id != dto.Id)
+			{
+				return BadRequest("ID mismatch between route and payload.");
+			}
+
+			var feat = await _context.Feats
+				.Include(f => f.Translations)
+				.FirstOrDefaultAsync(f => f.Id == id);
+
+			if (feat == null)
+			{
+				return NotFound();
+			}
+
+			// Update core mechanical data
+			feat.Category = dto.Category;
+			feat.Prerequisite = dto.Prerequisite;
+			feat.Ruleset = dto.Ruleset;
+			feat.IsOfficialSRD = dto.IsOfficialSRD;
+
+			var dtoLanguages = dto.Translations.Select(t => t.Language).ToList();
+
+			//	Safely remove translations omitted from the payload to prevent orphan records
+			var translationsToRemove = feat.Translations
+				.Where(t => !dtoLanguages.Contains(t.Language))
+				.ToList();
+
+			foreach (var tr in translationsToRemove)
+			{
+				feat.Translations.Remove(tr);
+			}
+
+			//	Process incoming translations for updates or insertions
+			foreach (var tDto in dto.Translations)
+			{
+				var existingTranslation = feat.Translations.FirstOrDefault(t => t.Language == tDto.Language);
+
+				if (existingTranslation != null)
+				{
+					existingTranslation.Name = tDto.Name;
+					existingTranslation.Description = tDto.Description;
+				}
+				else
+				{
+					feat.Translations.Add(new FeatTranslation
+					{
+						Language = tDto.Language,
+						Name = tDto.Name,
+						Description = tDto.Description
+					});
+				}
+			}
+
+			try
+			{
+				await _context.SaveChangesAsync();
+			}
+			catch (DbUpdateConcurrencyException ex)
+			{
+				//	Advanced diagnostics for tracking entity failure states
+				var failedEntityName = ex.Entries.FirstOrDefault()?.Entity.GetType().Name ?? "Unknown";
+				var state = ex.Entries.FirstOrDefault()?.State.ToString() ?? "N/A";
+
+				throw new Exception($"Concurrency error on entity '{failedEntityName}' during '{state}' operation. Verify that the database primary keys match the payload and that no orphaned data is interfering.", ex);
+			}
+
+			return NoContent();
+		}
+
+		[HttpDelete("{id:guid}")]
+		public async Task<IActionResult> DeleteFeat(Guid id)
+		{
+			var feat = await _context.Feats.FindAsync(id);
+
+			if (feat == null)
+			{
+				return NotFound();
+			}
+
+			_context.Feats.Remove(feat);
+			await _context.SaveChangesAsync();
+
+			return NoContent();
 		}
 	}
 }

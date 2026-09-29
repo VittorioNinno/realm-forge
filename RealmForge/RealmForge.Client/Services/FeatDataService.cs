@@ -75,5 +75,33 @@ namespace RealmForge.Client.Services
 				return false;
 			}
 		}
+
+		public async Task<bool> UpdateFeatAsync(Guid id, UpdateFeatDto dto)
+		{
+			try
+			{
+				var response = await _http.PutAsJsonAsync($"api/feats/{id}", dto);
+				return response.IsSuccessStatusCode;
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Failed to update feat with ID {FeatId}", id);
+				return false;
+			}
+		}
+
+		public async Task<bool> DeleteFeatAsync(Guid id)
+		{
+			try
+			{
+				var response = await _http.DeleteAsync($"api/feats/{id}");
+				return response.IsSuccessStatusCode;
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Failed to delete feat with ID {FeatId}", id);
+				return false;
+			}
+		}
 	}
 }

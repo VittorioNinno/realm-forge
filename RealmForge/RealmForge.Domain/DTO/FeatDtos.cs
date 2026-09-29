@@ -37,4 +37,21 @@ namespace RealmForge.Domain.DTOs
 		public string Name { get; set; } = string.Empty;
 		public string Description { get; set; } = string.Empty;
 	}
+
+	public class UpdateFeatDto
+	{
+		public Guid Id { get; set; }
+		public FeatCategory Category { get; set; }
+		public string? Prerequisite { get; set; }
+		public RulesetVersion Ruleset { get; set; }
+		public bool IsOfficialSRD { get; set; }
+		public List<UpdateFeatTranslationDto> Translations { get; set; } = new();
+	}
+
+	public class UpdateFeatTranslationDto
+	{
+		public LanguageCode Language { get; set; }
+		public string Name { get; set; } = string.Empty;
+		public string Description { get; set; } = string.Empty;
+	}
 }

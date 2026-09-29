@@ -12,7 +12,6 @@
 <PageTitle>RealmForge - @UiText.FeatsTitle(LanguageState.CurrentLanguage)</PageTitle>
 
 <div class="container-fluid px-0 py-4">
-    @* --- PAGE HEADER --- *@
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-3" style="border-bottom: 2px solid var(--rf-orange-primary);">
         <div>
             <h1 class="h3 fw-bold mb-1 rf-page-title">@UiText.FeatsTitle(LanguageState.CurrentLanguage)</h1>
@@ -23,17 +22,15 @@
 
         <div>
             <button class="btn btn-rf-orange" @onclick="OpenCreateModal">
-                @(LanguageState.CurrentLanguage == LanguageCode.It ? "+ Nuovo Talento" : "+ Add Feat")
+                @UiText.BtnAddFeat(LanguageState.CurrentLanguage)
             </button>
         </div>
     </div>
 
-    @* --- FILTER BAR --- *@
     <div class="row g-3 mb-4 p-3 rounded" style="background-color: var(--rf-bg-surface); border: 1px solid var(--rf-border-light);">
-        @* Search Input *@
         <div class="col-md-6 col-sm-12">
             <label class="rf-form-label small text-uppercase" style="letter-spacing: 0.5px;">
-                @(LanguageState.CurrentLanguage == LanguageCode.It ? "Cerca Talento" : "Search Feat")
+                @UiText.LabelSearchFeat(LanguageState.CurrentLanguage)
             </label>
             <input type="text"
                    class="rf-form-control"
@@ -42,7 +39,6 @@
                    @bind:event="oninput" />
         </div>
 
-        @* Custom Dark Fantasy Ruleset Selector *@
         <div class="col-md-6 col-sm-12">
             <label class="rf-form-label small text-uppercase" style="letter-spacing: 0.5px;">
                 @UiText.LabelRuleset(LanguageState.CurrentLanguage)
@@ -58,10 +54,9 @@
                       })" />
         </div>
 
-        @* Category Pill Filters *@
         <div class="col-12 mt-2">
             <label class="rf-form-label mb-2 small text-uppercase" style="letter-spacing: 0.5px;">
-                @(LanguageState.CurrentLanguage == LanguageCode.It ? "Categoria Talento" : "Feat Category")
+                @UiText.LabelFeatCategory(LanguageState.CurrentLanguage)
             </label>
             <div class="rf-pill-group">
                 <button type="button"
@@ -93,7 +88,6 @@
         </div>
     </div>
 
-    @* --- FEATS GRID --- *@
     @if (IsLoading)
     {
         <div class="text-center my-5 py-5">
@@ -121,7 +115,6 @@
                          style="cursor: pointer;"
                          @onclick="() => OpenDetailAsync(feat.Id)">
                         <div>
-                            @* CARD HEADER *@
                             <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
                                 <span class="rf-card-title mb-0">@feat.Name</span>
                                 <div class="d-flex gap-1 flex-shrink-0 align-items-center">
@@ -134,10 +127,9 @@
                                 </div>
                             </div>
 
-                            @* CARD METADATA *@
                             <div class="rf-meta-row">
                                 <div>
-                                    <strong>@(LanguageState.CurrentLanguage == LanguageCode.It ? "Categoria:" : "Category:")</strong>
+                                    <strong>@UiText.LabelCategory(LanguageState.CurrentLanguage)</strong>
                                     <span style="color: #ffffff;">@UiText.FormatFeatCategory(feat.Category, LanguageState.CurrentLanguage)</span>
                                 </div>
                                 @if (!string.IsNullOrWhiteSpace(feat.Prerequisite))
@@ -149,18 +141,16 @@
                                 }
                             </div>
 
-                            @* CARD DESCRIPTION *@
                             <p class="small lh-base mb-3" style="color: var(--rf-text-secondary); text-align: left;">
                                 @(string.IsNullOrWhiteSpace(feat.ShortDescription) ? UiText.NoDescription(LanguageState.CurrentLanguage) : feat.ShortDescription)
                             </p>
                         </div>
 
-                        @* CARD FOOTER *@
                         <div class="pt-3 d-flex justify-content-between align-items-center" style="border-top: 1px solid var(--rf-border-subtle);">
-                            <span class="badge bg-dark border border-warning text-warning small">
+                            <span class="badge bg-dark border border-warning text-warning small py-1 px-2">
                                 @UiText.FormatFeatCategory(feat.Category, LanguageState.CurrentLanguage)
                             </span>
-                            <button class="btn btn-sm btn-rf-outline" @onclick:stopPropagation="true" @onclick="() => OpenDetailAsync(feat.Id)">
+                            <button class="btn btn-sm btn-rf-outline text-uppercase flex-shrink-0" style="letter-spacing: 1px;" @onclick:stopPropagation="true" @onclick="() => OpenDetailAsync(feat.Id)">
                                 @UiText.BtnViewDetails(LanguageState.CurrentLanguage)
                             </button>
                         </div>
@@ -171,12 +161,10 @@
     }
 </div>
 
-@* --- FEAT DETAIL MODAL --- *@
 @if (SelectedFeat != null)
 {
     <div class="rf-modal-backdrop" @onclick="CloseDetail">
         <div class="rf-modal-dialog" style="max-width: 760px;" @onclick:stopPropagation="true">
-            @* MODAL HEADER *@
             <div class="d-flex justify-content-between align-items-start mb-3 pb-2" style="border-bottom: 2px solid var(--rf-orange-primary);">
                 <div>
                     <h2 class="h3 mb-1" style="color: var(--rf-orange-primary); font-family: var(--rf-font-display);">
@@ -197,7 +185,6 @@
                 <button class="btn btn-sm btn-rf-outline" @onclick="CloseDetail">✕</button>
             </div>
 
-            @* PREREQUISITE BANNER *@
             @if (!string.IsNullOrWhiteSpace(SelectedFeat.Prerequisite))
             {
                 <div class="p-3 mb-3 rounded" style="background-color: var(--rf-bg-main); border-left: 3px solid #ffb74d;">
@@ -210,7 +197,6 @@
                 </div>
             }
 
-            @* BODY / DESCRIPTION *@
             <div class="mb-4">
                 <div class="p-3 rounded" style="background-color: var(--rf-bg-card); border-left: 3px solid var(--rf-orange-primary);">
                     <p class="small mb-0 text-light" style="text-align: left; line-height: 1.6; white-space: pre-line;">
@@ -219,9 +205,21 @@
                 </div>
             </div>
 
-            @* MODAL ACTIONS *@
-            <div class="d-flex justify-content-end pt-3" style="border-top: 1px solid var(--rf-border-light);">
-                <button class="btn btn-rf-outline" @onclick="CloseDetail">
+            <div class="d-flex justify-content-between align-items-center pt-3 mt-4" style="border-top: 1px solid var(--rf-border-light);">
+                <div class="d-flex gap-3">
+                    <button class="btn btn-sm btn-rf-outline d-flex align-items-center gap-2 text-uppercase"
+                            style="letter-spacing: 1px;"
+                            @onclick="async () => { var id = SelectedFeat.Id; CloseDetail(); await OpenEditModalAsync(id); }">
+                        <span>✎</span> @UiText.Edit(LanguageState.CurrentLanguage)
+                    </button>
+                    <button class="btn btn-sm btn-rf-outline d-flex align-items-center justify-content-center px-3"
+                            style="border-color: #dc3545; color: #dc3545;"
+                            title="@UiText.Delete(LanguageState.CurrentLanguage)"
+                            @onclick="() => { var id = SelectedFeat.Id; var name = SelectedFeat.Name; CloseDetail(); OpenDeleteModal(id, name); }">
+                        <span>🗑</span>
+                    </button>
+                </div>
+                <button class="btn btn-rf-outline text-uppercase" style="letter-spacing: 1px;" @onclick="CloseDetail">
                     @UiText.BtnClose(LanguageState.CurrentLanguage)
                 </button>
             </div>
@@ -229,96 +227,121 @@
     </div>
 }
 
-@* --- CREATE FEAT MODAL --- *@
 @if (isModalOpen)
 {
     <div class="rf-modal-backdrop" @onclick="CloseCreateModal">
         <div class="rf-modal-dialog" style="max-width: 680px;" @onclick:stopPropagation="true">
             <h2 class="h4 mb-3 pb-2" style="border-bottom: 1px solid var(--rf-border-light); font-family: var(--rf-font-display);">
-                @(LanguageState.CurrentLanguage == LanguageCode.It ? "Aggiungi Nuovo Talento" : "Add New Feat")
+                @(isEditMode ? UiText.Edit(LanguageState.CurrentLanguage) : UiText.ModalTitleAddFeat(LanguageState.CurrentLanguage))
             </h2>
 
-            @if (!string.IsNullOrEmpty(formValidationMessage))
+            @if (isModalLoading)
             {
-                <div class="alert alert-warning bg-dark border-warning text-warning p-2 small mb-3">
-                    @formValidationMessage
+                <div class="text-center py-4">
+                    <div class="spinner-border text-warning" role="status"></div>
                 </div>
             }
+            else
+            {
+                @if (!string.IsNullOrEmpty(formValidationMessage))
+                {
+                    <div class="alert alert-warning bg-dark border-warning text-warning p-2 small mb-3">
+                        @formValidationMessage
+                    </div>
+                }
 
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label class="rf-form-label">
-                        @(LanguageState.CurrentLanguage == LanguageCode.It ? "Categoria Talento" : "Feat Category")
-                    </label>
-                    <RfSelect TValue="FeatCategory"
-                              @bind-Value="newCategory"
-                              Options="@(Enum.GetValues<FeatCategory>().Select(c => new RfSelect<FeatCategory>.OptionItem(c, UiText.FormatFeatCategory(c, LanguageState.CurrentLanguage))).ToList())" />
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="rf-form-label">
+                            @UiText.LabelFeatCategory(LanguageState.CurrentLanguage)
+                        </label>
+                        <RfSelect TValue="FeatCategory"
+                                  @bind-Value="newCategory"
+                                  Options="@(Enum.GetValues<FeatCategory>().Select(c => new RfSelect<FeatCategory>.OptionItem(c, UiText.FormatFeatCategory(c, LanguageState.CurrentLanguage))).ToList())" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="rf-form-label">@UiText.LabelRuleset(LanguageState.CurrentLanguage)</label>
+                        <RfSelect TValue="RulesetVersion"
+                                  @bind-Value="newRuleset"
+                                  Options="@(Enum.GetValues<RulesetVersion>().Select(r => new RfSelect<RulesetVersion>.OptionItem(r, UiText.FormatRuleset(r, LanguageState.CurrentLanguage))).ToList())" />
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <label class="rf-form-label">@UiText.LabelRuleset(LanguageState.CurrentLanguage)</label>
-                    <RfSelect TValue="RulesetVersion"
-                              @bind-Value="newRuleset"
-                              Options="@(Enum.GetValues<RulesetVersion>().Select(r => new RfSelect<RulesetVersion>.OptionItem(r, UiText.FormatRuleset(r, LanguageState.CurrentLanguage))).ToList())" />
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-8">
+                        <label class="rf-form-label">@UiText.LabelPrerequisite(LanguageState.CurrentLanguage)</label>
+                        <input type="text"
+                               class="rf-form-control"
+                               placeholder="@UiText.PlaceholderPrerequisite(LanguageState.CurrentLanguage)"
+                               @bind="newPrerequisite" />
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <label class="rf-checkbox-wrapper mb-2">
+                            <input type="checkbox" class="rf-checkbox" @bind="newIsSRD" />
+                            <span class="small fw-bold" style="color: var(--rf-text-secondary);">
+                                @UiText.LabelIsSRD(LanguageState.CurrentLanguage)
+                            </span>
+                        </label>
+                    </div>
                 </div>
+
+                <div class="p-3 mb-3 rounded" style="background-color: var(--rf-bg-card); border-left: 3px solid var(--rf-orange-primary);">
+                    <div class="fw-bold mb-2 small" style="color: var(--rf-orange-primary);">@UiText.TabItalian(LanguageState.CurrentLanguage)</div>
+                    <div class="mb-2">
+                        <label class="rf-form-label">@UiText.LabelName(LanguageState.CurrentLanguage)</label>
+                        <input type="text"
+                               class="rf-form-control"
+                               placeholder="@UiText.PlaceholderFeatNameIt(LanguageState.CurrentLanguage)"
+                               @bind="nameIt" />
+                    </div>
+                    <div>
+                        <label class="rf-form-label">@UiText.LabelDescription(LanguageState.CurrentLanguage)</label>
+                        <textarea class="rf-form-control" rows="3" @bind="descIt"></textarea>
+                    </div>
+                </div>
+
+                <div class="p-3 mb-4 rounded" style="background-color: var(--rf-bg-card); border-left: 3px solid #666;">
+                    <div class="fw-bold mb-2 small text-secondary">@UiText.TabEnglish(LanguageState.CurrentLanguage)</div>
+                    <div class="mb-2">
+                        <label class="rf-form-label" style="color: var(--rf-text-secondary);">@UiText.LabelName(LanguageState.CurrentLanguage)</label>
+                        <input type="text"
+                               class="rf-form-control"
+                               placeholder="@UiText.PlaceholderFeatNameEn(LanguageState.CurrentLanguage)"
+                               @bind="nameEn" />
+                    </div>
+                    <div>
+                        <label class="rf-form-label" style="color: var(--rf-text-secondary);">@UiText.LabelDescription(LanguageState.CurrentLanguage)</label>
+                        <textarea class="rf-form-control" rows="3" @bind="descEn"></textarea>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 pt-2" style="border-top: 1px solid var(--rf-border-light);">
+                    <button class="btn btn-rf-outline" @onclick="CloseCreateModal">
+                        @UiText.BtnCancel(LanguageState.CurrentLanguage)
+                    </button>
+                    <button class="btn btn-rf-orange" @onclick="HandleSaveFeat" disabled="@isSaving">
+                        @(isSaving ? "..." : UiText.BtnSaveFeat(LanguageState.CurrentLanguage))
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@if (isDeleteModalOpen)
+{
+    <div class="rf-modal-backdrop" @onclick="CloseDeleteModal">
+        <div class="rf-modal-dialog" @onclick:stopPropagation="true" style="max-width: 450px; text-align: center;">
+            <h2 class="h4 mb-3" style="color: var(--rf-orange-primary);">@UiText.ConfirmDeletion(LanguageState.CurrentLanguage)</h2>
+
+            <div class="p-3 mb-4 rounded" style="background-color: var(--rf-bg-main); border: 1px solid var(--rf-border-subtle); color: var(--rf-text-secondary); line-height: 1.5;">
+                @UiText.DeleteFeatWarning(LanguageState.CurrentLanguage, featToDeleteName)
             </div>
 
-            <div class="row g-3 mb-3">
-                <div class="col-md-8">
-                    <label class="rf-form-label">@UiText.LabelPrerequisite(LanguageState.CurrentLanguage)</label>
-                    <input type="text"
-                           class="rf-form-control"
-                           placeholder="@(LanguageState.CurrentLanguage == LanguageCode.It ? "Es. Livello 4+, Forza 13+" : "e.g. Level 4+, Strength 13+")"
-                           @bind="newPrerequisite" />
-                </div>
-                <div class="col-md-4 d-flex align-items-end">
-                    <label class="rf-checkbox-wrapper mb-2">
-                        <input type="checkbox" class="rf-checkbox" @bind="newIsSRD" />
-                        <span class="small fw-bold" style="color: var(--rf-text-secondary);">
-                            @UiText.LabelIsSRD(LanguageState.CurrentLanguage)
-                        </span>
-                    </label>
-                </div>
-            </div>
-
-            @* Italian Details *@
-            <div class="p-3 mb-3 rounded" style="background-color: var(--rf-bg-card); border-left: 3px solid var(--rf-orange-primary);">
-                <div class="fw-bold mb-2 small" style="color: var(--rf-orange-primary);">@UiText.TabItalian(LanguageState.CurrentLanguage)</div>
-                <div class="mb-2">
-                    <label class="rf-form-label">@UiText.LabelName(LanguageState.CurrentLanguage)</label>
-                    <input type="text"
-                           class="rf-form-control"
-                           placeholder="@(LanguageState.CurrentLanguage == LanguageCode.It ? "Es. Abile, Allerta, Fortunato..." : "e.g. Skilled, Alert, Lucky...")"
-                           @bind="nameIt" />
-                </div>
-                <div>
-                    <label class="rf-form-label">@UiText.LabelDescription(LanguageState.CurrentLanguage)</label>
-                    <textarea class="rf-form-control" rows="3" @bind="descIt"></textarea>
-                </div>
-            </div>
-
-            @* English Details *@
-            <div class="p-3 mb-4 rounded" style="background-color: var(--rf-bg-card); border-left: 3px solid #666;">
-                <div class="fw-bold mb-2 small text-secondary">@UiText.TabEnglish(LanguageState.CurrentLanguage)</div>
-                <div class="mb-2">
-                    <label class="rf-form-label" style="color: var(--rf-text-secondary);">@UiText.LabelName(LanguageState.CurrentLanguage)</label>
-                    <input type="text"
-                           class="rf-form-control"
-                           placeholder="e.g. Skilled, Alert, Lucky..."
-                           @bind="nameEn" />
-                </div>
-                <div>
-                    <label class="rf-form-label" style="color: var(--rf-text-secondary);">@UiText.LabelDescription(LanguageState.CurrentLanguage)</label>
-                    <textarea class="rf-form-control" rows="3" @bind="descEn"></textarea>
-                </div>
-            </div>
-
-            @* Modal Footer *@
-            <div class="d-flex justify-content-end gap-2 pt-2" style="border-top: 1px solid var(--rf-border-light);">
-                <button class="btn btn-rf-outline" @onclick="CloseCreateModal">
-                    @UiText.BtnCancel(LanguageState.CurrentLanguage)
-                </button>
-                <button class="btn btn-rf-orange" @onclick="HandleSaveFeat" disabled="@isSaving">
-                    @(isSaving ? "..." : (LanguageState.CurrentLanguage == LanguageCode.It ? "Forgia Talento" : "Forge Feat"))
+            <div class="d-flex justify-content-center gap-3">
+                <button class="btn btn-rf-outline" @onclick="CloseDeleteModal">@UiText.BtnCancel(LanguageState.CurrentLanguage)</button>
+                <button class="btn btn-rf-orange" style="background-color: #dc3545; border-color: #dc3545;" @onclick="HandleDeleteFeatAsync">
+                    @UiText.Delete(LanguageState.CurrentLanguage)
                 </button>
             </div>
         </div>
@@ -326,19 +349,16 @@
 }
 
 @code {
-    // Deep-linking query parameters
     [SupplyParameterFromQuery(Name = "id")]
     public Guid? QueryFeatId { get; set; }
 
     [SupplyParameterFromQuery(Name = "category")]
     public int? QueryCategoryInt { get; set; }
 
-    // Filter states
     private FeatCategory? SelectedCategory { get; set; }
     private RulesetVersion? SelectedRuleset { get; set; }
     private string SearchTerm { get; set; } = string.Empty;
 
-    // Ruleset string binding property for RfSelect
     private string SelectedRulesetFilterString
     {
         get => SelectedRuleset.HasValue ? ((int)SelectedRuleset.Value).ToString() : "";
@@ -355,17 +375,17 @@
         }
     }
 
-    // Collections & modal state
     private List<FeatResponseDto> AllFeats { get; set; } = new();
     private FeatDetailResponseDto? SelectedFeat { get; set; }
     private bool IsLoading { get; set; } = true;
 
-    // Create modal state
     private bool isModalOpen = false;
+    private bool isModalLoading = false;
     private bool isSaving = false;
+    private bool isEditMode = false;
+    private Guid editingId;
     private string? formValidationMessage;
 
-    // Form fields
     private FeatCategory newCategory = FeatCategory.Origin;
     private RulesetVersion newRuleset = RulesetVersion.Dnd5e_2024;
     private string? newPrerequisite = null;
@@ -375,7 +395,10 @@
     private string nameEn = "";
     private string descEn = "";
 
-    // In-memory filtered items
+    private bool isDeleteModalOpen = false;
+    private Guid featToDeleteId;
+    private string featToDeleteName = string.Empty;
+
     private IEnumerable<FeatResponseDto> FilteredFeats =>
         string.IsNullOrWhiteSpace(SearchTerm)
             ? AllFeats
@@ -435,6 +458,7 @@
 
     private void OpenCreateModal()
     {
+        isEditMode = false;
         formValidationMessage = null;
         newCategory = FeatCategory.Origin;
         newRuleset = RulesetVersion.Dnd5e_2024;
@@ -445,6 +469,47 @@
         nameEn = "";
         descEn = "";
         isModalOpen = true;
+    }
+
+    private async Task OpenEditModalAsync(Guid id)
+    {
+        isEditMode = true;
+        editingId = id;
+        formValidationMessage = null;
+        isModalOpen = true;
+        isModalLoading = true;
+
+        try
+        {
+            var detailItTask = FeatService.GetFeatDetailAsync(id, LanguageCode.It);
+            var detailEnTask = FeatService.GetFeatDetailAsync(id, LanguageCode.En);
+
+            await Task.WhenAll(detailItTask, detailEnTask);
+
+            var detailIt = detailItTask.Result;
+            var detailEn = detailEnTask.Result;
+
+            if (detailIt != null && detailEn != null)
+            {
+                newCategory = detailIt.Category;
+                newRuleset = detailIt.Ruleset;
+                newPrerequisite = detailIt.Prerequisite;
+                newIsSRD = detailIt.IsOfficialSRD;
+
+                nameIt = detailIt.Name;
+                descIt = detailIt.Description;
+                nameEn = detailEn.Name;
+                descEn = detailEn.Description;
+            }
+        }
+        catch (Exception ex)
+        {
+            formValidationMessage = $"Error loading data: {ex.Message}";
+        }
+        finally
+        {
+            isModalLoading = false;
+        }
     }
 
     private void CloseCreateModal()
@@ -462,31 +527,42 @@
 
         isSaving = true;
         formValidationMessage = null;
+        bool success;
 
-        var dto = new CreateFeatDto
+        if (isEditMode)
         {
-            Category = newCategory,
-            Prerequisite = string.IsNullOrWhiteSpace(newPrerequisite) ? null : newPrerequisite.Trim(),
-            Ruleset = newRuleset,
-            IsOfficialSRD = newIsSRD,
-            Translations = new List<CreateFeatTranslationDto>
+            var updateDto = new UpdateFeatDto
             {
-                new CreateFeatTranslationDto
+                Id = editingId,
+                Category = newCategory,
+                Prerequisite = string.IsNullOrWhiteSpace(newPrerequisite) ? null : newPrerequisite.Trim(),
+                Ruleset = newRuleset,
+                IsOfficialSRD = newIsSRD,
+                Translations = new List<UpdateFeatTranslationDto>
                 {
-                    Language = LanguageCode.It,
-                    Name = nameIt.Trim(),
-                    Description = descIt?.Trim() ?? string.Empty
-                },
-                new CreateFeatTranslationDto
-                {
-                    Language = LanguageCode.En,
-                    Name = nameEn.Trim(),
-                    Description = descEn?.Trim() ?? string.Empty
+                    new UpdateFeatTranslationDto { Language = LanguageCode.It, Name = nameIt.Trim(), Description = descIt?.Trim() ?? string.Empty },
+                    new UpdateFeatTranslationDto { Language = LanguageCode.En, Name = nameEn.Trim(), Description = descEn?.Trim() ?? string.Empty }
                 }
-            }
-        };
+            };
+            success = await FeatService.UpdateFeatAsync(editingId, updateDto);
+        }
+        else
+        {
+            var createDto = new CreateFeatDto
+            {
+                Category = newCategory,
+                Prerequisite = string.IsNullOrWhiteSpace(newPrerequisite) ? null : newPrerequisite.Trim(),
+                Ruleset = newRuleset,
+                IsOfficialSRD = newIsSRD,
+                Translations = new List<CreateFeatTranslationDto>
+                {
+                    new CreateFeatTranslationDto { Language = LanguageCode.It, Name = nameIt.Trim(), Description = descIt?.Trim() ?? string.Empty },
+                    new CreateFeatTranslationDto { Language = LanguageCode.En, Name = nameEn.Trim(), Description = descEn?.Trim() ?? string.Empty }
+                }
+            };
+            success = await FeatService.CreateFeatAsync(createDto);
+        }
 
-        var success = await FeatService.CreateFeatAsync(dto);
         isSaving = false;
 
         if (success)
@@ -497,6 +573,35 @@
         else
         {
             formValidationMessage = UiText.ErrApiSave(LanguageState.CurrentLanguage);
+        }
+    }
+
+    private void OpenDeleteModal(Guid id, string name)
+    {
+        featToDeleteId = id;
+        featToDeleteName = name;
+        isDeleteModalOpen = true;
+    }
+
+    private void CloseDeleteModal()
+    {
+        isDeleteModalOpen = false;
+    }
+
+    private async Task HandleDeleteFeatAsync()
+    {
+        var success = await FeatService.DeleteFeatAsync(featToDeleteId);
+
+        if (success)
+        {
+            isDeleteModalOpen = false;
+            await LoadFeatsAsync();
+            // Close the detail modal if it was open and the user deleted the feat
+            SelectedFeat = null;
+        }
+        else
+        {
+            formValidationMessage = UiText.ErrDeleteFeat(LanguageState.CurrentLanguage);
         }
     }
 
