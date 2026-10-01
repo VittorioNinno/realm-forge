@@ -4,6 +4,7 @@
 @using RealmForge.Client.Services
 @using RealmForge.Domain.DTOs
 @using RealmForge.Domain.Enums
+@using Markdig
 @implements IDisposable
 @inject FeatDataService FeatService
 @inject LanguageStateService LanguageState
@@ -197,11 +198,9 @@
                 </div>
             }
 
-            <div class="mb-4">
-                <div class="p-3 rounded" style="background-color: var(--rf-bg-card); border-left: 3px solid var(--rf-orange-primary);">
-                    <p class="small mb-0 text-light" style="text-align: left; line-height: 1.6; white-space: pre-line;">
-                        @SelectedFeat.Description
-                    </p>
+            <div class="mb-4 p-3 rounded" style="background-color: var(--rf-bg-main); border-left: 3px solid var(--rf-border-light);">
+                <div class="rf-markdown-container">
+                    @((MarkupString)GetRenderedMarkdown(SelectedFeat.Description))
                 </div>
             </div>
 
@@ -603,6 +602,24 @@
         {
             formValidationMessage = UiText.ErrDeleteFeat(LanguageState.CurrentLanguage);
         }
+    }
+
+    // Markdown pipeline with advanced extensions (supports tables, lists, etc.)
+    private static readonly MarkdownPipeline markdownPipeline = new MarkdownPipelineBuilder()
+        .UseAdvancedExtensions()
+        .Build();
+
+    private string GetRenderedMarkdown(string? description)
+    {
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            return string.Empty;
+        }
+
+        // Retro-compatibility: Force our old "\n- " pattern to be parsed as a proper Markdown list
+        var safeDescription = description.Replace("\n- ", "\n\n- ");
+
+        return Markdown.ToHtml(safeDescription, markdownPipeline);
     }
 
     public void Dispose()

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RealmForge.Domain.Entities;
+using RealmForge.Infrastructure.Persistence.Seeding;
 
 namespace RealmForge.Infrastructure.Persistence
 {

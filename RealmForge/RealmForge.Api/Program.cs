@@ -58,6 +58,7 @@ namespace RealmForge.Api
 				{
 					var dbContext = services.GetRequiredService<RealmForgeDbContext>();
 					await RealmForge.Infrastructure.Persistence.Seeding.SpeciesSeeder.SeedAsync(dbContext);
+					await RealmForge.Infrastructure.Persistence.Seeding.FeatSeeder.SeedAsync(dbContext);
 				}
 				catch (Exception ex)
 				{
